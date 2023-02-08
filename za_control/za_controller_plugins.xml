@@ -1,0 +1,5 @@
+<library path="lib/libza_state_controller">
+  <class name="za_control/ZaStateController" type="za_control::ZaStateController" base_class_type="controller_interface::ControllerBase">
+    <description>A controller that publishes the complete robot state</description>
+  </class>
+</library>
