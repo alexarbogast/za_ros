@@ -39,7 +39,7 @@ bool ZaStateController::init(hardware_interface::RobotHW* robot_hardware,
         return false;
     }
 
-    publisher_joint_states_.init(controller_node_handle, "joint_state", 1);
+    publisher_joint_states_.init(controller_node_handle, "joint_states", 1);
     publisher_joint_states_desired_.init(controller_node_handle, "joint_states_desired", 1);
 
     {
