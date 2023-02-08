@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>za_hw</name>
+  <version>0.1.0</version>
+  <description> za_control provides a ros_control interface for the Tormach ZA6 robot </description>
+  <author email="arbogastaw@gmail.com">Alex Arbogast</author>
+  <maintainer email="arbogastaw@gmail.com">Alex Arbogast</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <depend>controller_interface</depend>
+  <depend>hardware_interface</depend>
+  <depend>roscpp</depend>
+  <depend>pluginlib</depend>
+  <depend>urdf</depend>
+
+  <exec_depend>za_description</exec_depend>
+
+</package>

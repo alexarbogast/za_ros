@@ -1,0 +1,12 @@
+<library path="lib/libza_hw_sim">
+
+  <class
+      name="za_gazebo/ZaHWSim"
+      type="za_gazebo::ZaHWSim"
+      base_class_type="gazebo_ros_control::RobotHWSim">
+      <description>
+          A custom implementation of a gazebo_ros_control plugin, which is able to simulate za interfaces in Gazebo.
+      </description>
+  </class>
+
+</library>
