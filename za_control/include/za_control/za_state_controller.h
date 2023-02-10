@@ -3,6 +3,7 @@
 #include <za_hw/trigger_rate.h>
 #include <realtime_tools/realtime_publisher.h>
 #include <sensor_msgs/JointState.h>
+#include <za_msgs/ZaState.h>
 
 namespace za_control
 {
@@ -34,6 +35,7 @@ public:
 
 private:
     void publishJointStates(const ros::Time& time);
+    void publishZaStates(const ros::Time& time);
 
     std::string arm_id_;
 
@@ -42,7 +44,8 @@ private:
 
     realtime_tools::RealtimePublisher<sensor_msgs::JointState> publisher_joint_states_;
     realtime_tools::RealtimePublisher<sensor_msgs::JointState> publisher_joint_states_desired_;
-    
+    realtime_tools::RealtimePublisher<za_msgs::ZaState> publisher_za_states_;
+
     robot_hw::TriggerRate trigger_publish_;
     za::RobotState robot_state_;
     uint64_t sequence_number_ = 0;

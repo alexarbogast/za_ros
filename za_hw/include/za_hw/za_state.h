@@ -67,8 +67,14 @@ struct RobotState
     std::array<double, 9> I_ee{};  // NOLINT(readability-identifier-naming)
 
     /**
+    * \f$^{F}x_{C_{EE}}\f$
+    * Configured center of mass of the end effector load with respect to flange frame.
+    */
+    std::array<double, 3> F_x_Cee{};  // NOLINT(readability-identifier-naming)
+
+    /**
      * \f$m_{load}\f$
-     * Configured mass of the external load.
+     * Configured mass of the external load.    
      */
     double m_load{};
 
@@ -152,7 +158,7 @@ struct RobotState
     *
     * @see Robot::setCollisionBehavior for setting sensitivity values.
     */
-    std::array<double, 7> joint_contact{};
+    std::array<double, 6> joint_contact{};
 
     /**
     * Indicates which contact level is activated in which joint. After contact disappears, the value
@@ -161,7 +167,7 @@ struct RobotState
     * @see Robot::setCollisionBehavior for setting sensitivity values.
     * @see Robot::automaticErrorRecovery for performing a reset after a collision.
     */
-    std::array<double, 7> joint_collision{};
+    std::array<double, 6> joint_collision{};
 
     /**
     * \f$\hat{\tau}_{\text{ext}}\f$
@@ -171,25 +177,25 @@ struct RobotState
     */
     std::array<double, 6> tau_ext_hat_filtered{};
 
-    /**
-    * \f$^OF_{K,\text{ext}}\f$
-    * Estimated external wrench (force, torque) acting on stiffness frame, expressed
-    * relative to the @ref o-frame "base frame". Forces applied by the robot to the environment are
-    * positive, while forces applied by the environment on the robot are negative. Becomes
-    * \f$[0,0,0,0,0,0]\f$ when near or in a singularity. See also @ref k-frame "Stiffness frame K".
-    * Unit: \f$[N,N,N,Nm,Nm,Nm]\f$.
-    */
-    std::array<double, 6> O_F_ext_hat_K{};  // NOLINT(readability-identifier-naming)
-
-    /**
-    * \f$^{K}F_{K,\text{ext}}\f$
-    * Estimated external wrench (force, torque) acting on stiffness frame,
-    * expressed relative to the stiffness frame. Forces applied by the robot to the environment are
-    * positive, while forces applied by the environment on the robot are negative. Becomes
-    * \f$[0,0,0,0,0,0]\f$ when near or in a singularity. See also @ref k-frame "Stiffness frame K".
-    * Unit: \f$[N,N,N,Nm,Nm,Nm]\f$.
-    */
-    std::array<double, 6> K_F_ext_hat_K{};  // NOLINT(readability-identifier-naming)
+    ///**
+    //* \f$^OF_{K,\text{ext}}\f$
+    //* Estimated external wrench (force, torque) acting on stiffness frame, expressed
+    //* relative to the @ref o-frame "base frame". Forces applied by the robot to the environment are
+    //* positive, while forces applied by the environment on the robot are negative. Becomes
+    //* \f$[0,0,0,0,0,0]\f$ when near or in a singularity. See also @ref k-frame "Stiffness frame K".
+    //* Unit: \f$[N,N,N,Nm,Nm,Nm]\f$.
+    //*/
+    //std::array<double, 6> O_F_ext_hat_K{};  // NOLINT(readability-identifier-naming)
+//
+    ///**
+    //* \f$^{K}F_{K,\text{ext}}\f$
+    //* Estimated external wrench (force, torque) acting on stiffness frame,
+    //* expressed relative to the stiffness frame. Forces applied by the robot to the environment are
+    //* positive, while forces applied by the environment on the robot are negative. Becomes
+    //* \f$[0,0,0,0,0,0]\f$ when near or in a singularity. See also @ref k-frame "Stiffness frame K".
+    //* Unit: \f$[N,N,N,Nm,Nm,Nm]\f$.
+    //*/
+    //std::array<double, 6> K_F_ext_hat_K{};  // NOLINT(readability-identifier-naming)
 };
 
 }; // namespace za

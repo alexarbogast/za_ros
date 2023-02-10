@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   controller_interface
   controller_manager
   za_hw
+  za_msgs
   pluginlib
   realtime_tools
   roscpp
@@ -22,6 +23,7 @@ catkin_package(
   CATKIN_DEPENDS
     controller_interface
     za_hw
+    za_msgs
     pluginlib
     realtime_tools
     roscpp

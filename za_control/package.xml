@@ -12,6 +12,7 @@
   <depend>controller_interface</depend>
   <depend>controller_manager</depend>
   <depend>za_hw</depend>
+  <depend>za_msgs</depend>
   <depend>pluginlib</depend>
   <depend>realtime_tools</depend>
   <depend>roscpp</depend>

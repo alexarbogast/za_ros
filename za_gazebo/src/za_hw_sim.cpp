@@ -111,14 +111,14 @@ bool ZaHWSim::initSim(const std::string& robot_namespace,
                 }
                 if (k_interface == "hardware_interface/PositionJointInterface") {
                     // Initiate position motion generator (PID controller)
-                    joint->position_controller.initParam(robot_namespace +
+                    joint->position_controller.initParam(model_nh.getNamespace() +
                                                          "/motion_generators/position/gains/" + joint->name);
                     initPositionCommandHandle(joint);
                     continue;
                 }
                 if (k_interface == "hardware_interface/VelocityJointInterface") {
                     // Initiate velocity motion generator (PID controller)
-                    joint->velocity_controller.initParam(robot_namespace +
+                    joint->velocity_controller.initParam(model_nh.getNamespace() +
                                                          "/motion_generators/velocity/gains/" + joint->name);
                     initVelocityCommandHandle(joint);
                     continue;
@@ -253,7 +253,6 @@ void ZaHWSim::initZaModelHandle(
         throw std::invalid_argument("Cannot create franka_hw/FrankaModelInterface for robot '" + robot +
                                     "_model'. " + e.what());
     }
-    std::cout << "made it" << std::endl;
 
     this->zmi_.registerHandle(
         za_hw::ZaModelHandle(robot + "_model", *this->model_, this->robot_state_));
@@ -343,13 +342,15 @@ bool ZaHWSim::readParameters(const ros::NodeHandle& nh, const urdf::Model& urdf)
 }
 
 void ZaHWSim::guessEndEffector(const ros::NodeHandle& nh, const urdf::Model& urdf) {
-    // replace with parameters
-    auto hand_link = this->arm_id_ + "_typhoon_extruder";
-    auto hand = urdf.getLink(hand_link);
-    if (hand != nullptr) {
+    std::string eef_link; 
+    if(not nh.getParam("end_effector", eef_link)) {
+        eef_link = arm_id_ + "_flange";
+    }
+    auto eef = urdf.getLink(eef_link);
+    if (eef != nullptr) {
         ROS_INFO_STREAM_NAMED("za_hw_sim",
-                            "Found link '" << hand_link
-                                            << "' in URDF. Assuming it is defining the kinematics & "
+                              "Found link '" << eef_link
+                                             << "' in URDF. Assuming it is defining the kinematics & "
                                                 "inertias of a Franka Hand Gripper.");
     }
 
@@ -358,51 +359,52 @@ void ZaHWSim::guessEndEffector(const ros::NodeHandle& nh, const urdf::Model& urd
     std::string def_i_ee = "0.0 0 0 0 0.0 0 0 0 0.0";
     std::string def_f_x_cee = "0 0 0";
     std::string def_f_t_ne = "1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1";
-    if (not nh.hasParam("F_T_NE") and hand != nullptr) {
-        // NOTE: We cannot interprete the Joint pose from the URDF directly, because
-        // its <arm_id>_link is mounted at the flange directly and not at NE
-        def_f_t_ne = "0.7071 -0.7071 0 0 0.7071 0.7071 0 0 0 0 1 0 0 0 0.1034 1";
-    }
+    //if (not nh.hasParam("F_T_NE") and eef != nullptr) {
+    //    // NOTE: We cannot interprete the Joint pose from the URDF directly, because
+    //    // its <arm_id>_link is mounted at the flange directly and not at NE
+    //    def_f_t_ne = "1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1";
+    //}
     std::string F_T_NE;  // NOLINT [readability-identifier-naming]
     nh.param<std::string>("F_T_NE", F_T_NE, def_f_t_ne);
     this->robot_state_.F_T_NE = readArray<16>(F_T_NE, "F_T_NE");
 
-    if (not nh.hasParam("m_ee") and hand != nullptr) {
-        if (hand->inertial == nullptr) {
-        throw std::invalid_argument("Trying to use inertia of " + hand_link +
+    if (not nh.hasParam("m_ee") and eef != nullptr) {
+        if (eef->inertial == nullptr) {
+        throw std::invalid_argument("Trying to use inertia of " + eef_link +
                                     " but this link has no <inertial> tag defined in it.");
         }
-        def_m_ee = hand->inertial->mass;
+        def_m_ee = eef->inertial->mass;
     }
     nh.param<double>("m_ee", this->robot_state_.m_ee, def_m_ee);
 
-    if (not nh.hasParam("I_ee") and hand != nullptr) {
-        if (hand->inertial == nullptr) {
-        throw std::invalid_argument("Trying to use inertia of " + hand_link +
+    if (not nh.hasParam("I_ee") and eef != nullptr) {
+        if (eef->inertial == nullptr) {
+        throw std::invalid_argument("Trying to use inertia of " + eef_link +
                                     " but this link has no <inertial> tag defined in it.");
         }
         // clang-format off
-        def_i_ee = std::to_string(hand->inertial->ixx) + " " + std::to_string(hand->inertial->ixy) + " " + std::to_string(hand->inertial->ixz) + " "
-                + std::to_string(hand->inertial->ixy) + " " + std::to_string(hand->inertial->iyy) + " " + std::to_string(hand->inertial->iyz) + " "
-                + std::to_string(hand->inertial->ixz) + " " + std::to_string(hand->inertial->iyz) + " " + std::to_string(hand->inertial->izz);
+        def_i_ee = std::to_string(eef->inertial->ixx) + " " + std::to_string(eef->inertial->ixy) + " " + std::to_string(eef->inertial->ixz) + " "
+                 + std::to_string(eef->inertial->ixy) + " " + std::to_string(eef->inertial->iyy) + " " + std::to_string(eef->inertial->iyz) + " "
+                 + std::to_string(eef->inertial->ixz) + " " + std::to_string(eef->inertial->iyz) + " " + std::to_string(eef->inertial->izz);
         // clang-format on
     }
     std::string I_ee;  // NOLINT [readability-identifier-naming]
     nh.param<std::string>("I_ee", I_ee, def_i_ee);
     this->robot_state_.I_ee = readArray<9>(I_ee, "I_ee");
 
-    if (not nh.hasParam("F_x_Cee") and hand != nullptr) {
-        if (hand->inertial == nullptr) {
-        throw std::invalid_argument("Trying to use inertia of " + hand_link +
+    if (not nh.hasParam("F_x_Cee") and eef != nullptr) {
+        if (eef->inertial == nullptr) {
+        throw std::invalid_argument("Trying to use inertia of " + eef_link +
                                     " but this link has no <inertial> tag defined in it.");
         }
-        def_f_x_cee = std::to_string(hand->inertial->origin.position.x) + " " +
-                      std::to_string(hand->inertial->origin.position.y) + " " +
-                      std::to_string(hand->inertial->origin.position.z);
+        def_f_x_cee = std::to_string(eef->inertial->origin.position.x) + " " +
+                      std::to_string(eef->inertial->origin.position.y) + " " +
+                      std::to_string(eef->inertial->origin.position.z);
     }
     std::string F_x_Cee;  // NOLINT [readability-identifier-naming]
     nh.param<std::string>("F_x_Cee", F_x_Cee, def_f_x_cee);
-    //this->robot_state_.F_x_Cee = readArray<3>(F_x_Cee, "F_x_Cee");
+    std::cout << def_f_x_cee << std::endl;
+    this->robot_state_.F_x_Cee = readArray<3>(F_x_Cee, "F_x_Cee");
 }
 
 void ZaHWSim::restartControllers() 
@@ -508,8 +510,7 @@ void ZaHWSim::updateRobotState(ros::Time time)
             joint->stop_position = joint->position;
         }
 
-        if (this->robot_initialized_) 
-        {
+        if (this->robot_initialized_) {
             double tau_ext = joint->effort - joint->command + joint->gravity;
 
             // Exponential moving average filter from tau_ext -> tau_ext_hat_filtered
@@ -533,10 +534,10 @@ void ZaHWSim::updateRobotState(ros::Time time)
     za_control::pseudoInverse(j0.transpose(), j0_transpose_pinv);
     za_control::pseudoInverse(jk.transpose(), jk_transpose_pinv);
 
-    Eigen::VectorXd f_ext_0 = j0_transpose_pinv * tau_ext;
-    Eigen::VectorXd f_ext_k = jk_transpose_pinv * tau_ext;
-    Eigen::VectorXd::Map(&this->robot_state_.O_F_ext_hat_K[0], 6) = f_ext_0;
-    Eigen::VectorXd::Map(&this->robot_state_.K_F_ext_hat_K[0], 6) = f_ext_k;
+    //Eigen::VectorXd f_ext_0 = j0_transpose_pinv * tau_ext;
+    //Eigen::VectorXd f_ext_k = jk_transpose_pinv * tau_ext;
+    //Eigen::VectorXd::Map(&this->robot_state_.O_F_ext_hat_K[0], 6) = f_ext_0;
+    //Eigen::VectorXd::Map(&this->robot_state_.K_F_ext_hat_K[0], 6) = f_ext_k;
 
     this->robot_state_.O_T_EE = this->model_->pose(za::Frame::kEndEffector, this->robot_state_);
 

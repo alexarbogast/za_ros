@@ -41,6 +41,7 @@ bool ZaStateController::init(hardware_interface::RobotHW* robot_hardware,
 
     publisher_joint_states_.init(controller_node_handle, "joint_states", 1);
     publisher_joint_states_desired_.init(controller_node_handle, "joint_states_desired", 1);
+    publisher_za_states_.init(controller_node_handle, "za_states", 1);
 
     {
         std::lock_guard<realtime_tools::RealtimePublisher<sensor_msgs::JointState>> lock(
@@ -65,6 +66,7 @@ void ZaStateController::update(const ros::Time& time, const ros::Duration& perio
     {
         robot_state_ = za_state_handle_->getRobotState();
         publishJointStates(time);
+        publishZaStates(time);
         sequence_number_++;
     }
 }
@@ -98,6 +100,76 @@ void ZaStateController::publishJointStates(const ros::Time& time)
         publisher_joint_states_desired_.msg_.header.stamp = time;
         publisher_joint_states_desired_.msg_.header.seq = sequence_number_;
         publisher_joint_states_desired_.unlockAndPublish();
+    }
+}
+
+void ZaStateController::publishZaStates(const ros::Time& time) {
+    if (publisher_za_states_.trylock()) {
+        static_assert(sizeof(robot_state_.q) == sizeof(robot_state_.q_d),
+                    "Robot state joint members do not have same size");
+        static_assert(sizeof(robot_state_.q) == sizeof(robot_state_.dq),
+                    "Robot state joint members do not have same size");
+        static_assert(sizeof(robot_state_.q) == sizeof(robot_state_.dq_d),
+                    "Robot state joint members do not have same size");
+        static_assert(sizeof(robot_state_.q) == sizeof(robot_state_.ddq_d),
+                    "Robot state joint members do not have same size");
+        static_assert(sizeof(robot_state_.q) == sizeof(robot_state_.theta),
+                    "Robot state joint members do not have same size");
+        static_assert(sizeof(robot_state_.q) == sizeof(robot_state_.dtheta),
+                    "Robot state joint members do not have same size");
+        static_assert(sizeof(robot_state_.q) == sizeof(robot_state_.joint_collision),
+                    "Robot state joint members do not have same size");
+        static_assert(sizeof(robot_state_.q) == sizeof(robot_state_.joint_contact),
+                    "Robot state joint members do not have same size");
+        static_assert(sizeof(robot_state_.q) == sizeof(robot_state_.tau_ext_hat_filtered),
+                    "Robot state joint members do not have same size");
+        for (size_t i = 0; i < robot_state_.q.size(); i++) {
+        publisher_za_states_.msg_.q[i] = robot_state_.q[i];
+        publisher_za_states_.msg_.q_d[i] = robot_state_.q_d[i];
+        publisher_za_states_.msg_.dq[i] = robot_state_.dq[i];
+        publisher_za_states_.msg_.dq_d[i] = robot_state_.dq_d[i];
+        publisher_za_states_.msg_.ddq_d[i] = robot_state_.ddq_d[i];
+        publisher_za_states_.msg_.theta[i] = robot_state_.theta[i];
+        publisher_za_states_.msg_.dtheta[i] = robot_state_.dtheta[i];
+        publisher_za_states_.msg_.joint_collision[i] = robot_state_.joint_collision[i];
+        publisher_za_states_.msg_.joint_contact[i] = robot_state_.joint_contact[i];
+        publisher_za_states_.msg_.tau_ext_hat_filtered[i] = robot_state_.tau_ext_hat_filtered[i];
+        }
+
+        static_assert(sizeof(robot_state_.O_T_EE) == sizeof(robot_state_.F_T_EE),
+                    "Robot state transforms do not have same size");
+        static_assert(sizeof(robot_state_.O_T_EE) == sizeof(robot_state_.F_T_NE),
+                    "Robot state transforms do not have same size");
+        static_assert(sizeof(robot_state_.O_T_EE) == sizeof(robot_state_.NE_T_EE),
+                    "Robot state transforms do not have same size");
+        static_assert(sizeof(robot_state_.O_T_EE) == sizeof(robot_state_.O_T_EE_d),
+                    "Robot state transforms do not have same size");
+        for (size_t i = 0; i < robot_state_.O_T_EE.size(); i++) {
+            publisher_za_states_.msg_.O_T_EE[i] = robot_state_.O_T_EE[i];
+            publisher_za_states_.msg_.F_T_EE[i] = robot_state_.F_T_EE[i];
+            publisher_za_states_.msg_.F_T_NE[i] = robot_state_.F_T_NE[i];
+            publisher_za_states_.msg_.NE_T_EE[i] = robot_state_.NE_T_EE[i];
+            publisher_za_states_.msg_.O_T_EE_d[i] = robot_state_.O_T_EE_d[i];
+        }
+        publisher_za_states_.msg_.m_ee = robot_state_.m_ee;
+        publisher_za_states_.msg_.m_load = robot_state_.m_load;
+        publisher_za_states_.msg_.m_total = robot_state_.m_total;
+
+        for (size_t i = 0; i < robot_state_.I_load.size(); i++) {
+            publisher_za_states_.msg_.I_ee[i] = robot_state_.I_ee[i];
+            publisher_za_states_.msg_.I_load[i] = robot_state_.I_load[i];
+            publisher_za_states_.msg_.I_total[i] = robot_state_.I_total[i];
+        }
+
+        for (size_t i = 0; i < robot_state_.F_x_Cload.size(); i++) {
+            publisher_za_states_.msg_.F_x_Cee[i] = robot_state_.F_x_Cee[i];
+            publisher_za_states_.msg_.F_x_Cload[i] = robot_state_.F_x_Cload[i];
+            publisher_za_states_.msg_.F_x_Ctotal[i] = robot_state_.F_x_Ctotal[i];
+        }
+
+        publisher_za_states_.msg_.header.seq = sequence_number_;
+        publisher_za_states_.msg_.header.stamp = time;
+        publisher_za_states_.unlockAndPublish();
     }
 }
 
