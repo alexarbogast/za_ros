@@ -20,12 +20,12 @@ effort_joint_trajectory_controller:
     - $(arg arm_id)_joint_5
     - $(arg arm_id)_joint_6
   gains:
-    $(arg arm_id)_joint_1: { p: 1000, d: 350, i: 0 }
+    $(arg arm_id)_joint_1: { p: 1000, d: 300, i: 0 }
     $(arg arm_id)_joint_2: { p: 1200, d: 300, i: 0 }
     $(arg arm_id)_joint_3: { p: 1000, d: 200, i: 0 }
     $(arg arm_id)_joint_4: { p: 300, d: 30,  i: 0 }
-    $(arg arm_id)_joint_5: { p: 100, d: 10,  i: 0 }
-    $(arg arm_id)_joint_6: { p: 100, d: 0,   i: 0 }
+    $(arg arm_id)_joint_5: { p: 75, d: 10,  i: 0 }
+    $(arg arm_id)_joint_6: { p: 30, d: 3,   i: 0 }
   constraints:
     goal_time: 0.5
     $(arg arm_id)_joint_1: { goal: 0.05 }

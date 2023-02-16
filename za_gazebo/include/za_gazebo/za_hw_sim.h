@@ -7,9 +7,11 @@
 #include <za_hw/model_base.h>
 #include <za_gazebo/joint.h>
 #include <za_gazebo/controller_verifier.h>
+#include <za_gazebo/statemachine.h>
 #include <hardware_interface/joint_state_interface.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <pluginlib/class_list_macros.h>
+#include <boost_sml/sml.hpp>
 
 namespace za_gazebo
 {
@@ -18,6 +20,8 @@ const double kDefaultTauExtLowpassFilter = 1.0;  // no filtering per default of 
 class ZaHWSim : public gazebo_ros_control::RobotHWSim
 {
 public:
+    ZaHWSim();
+
     /**
     * Initialize the simulated robot hardware and parse all supported transmissions.
     *
@@ -71,6 +75,12 @@ public:
     bool prepareSwitch(const std::list<hardware_interface::ControllerInfo>& start_list,
                        const std::list<hardware_interface::ControllerInfo>& /*stop_list*/) override;
 
+    /**
+     * Return the arm_id namespace parameter associated with this hardware interface
+     * 
+     * @return const std::string& 
+     */
+    inline const std::string& getArmID() const { return this->arm_id_; }
 
 protected:
     void initJointStateHandle(const std::shared_ptr<za_gazebo::Joint>& joint);
@@ -80,7 +90,8 @@ protected:
     void initZaStateHandle(const std::string& robot,
                            const urdf::Model& urdf,
                            const transmission_interface::TransmissionInfo& transmission);
-    void initZaModelHandle(const std::string& robot,
+    void initZaModelHandle(const ros::NodeHandle& nh,
+                           const std::string& robot,
                            const urdf::Model& urdf,
                            const transmission_interface::TransmissionInfo& transmission,
                            double singularity_threshold);
@@ -173,12 +184,14 @@ protected:
     za_hw::ZaStateInterface zsi_;
 	za_hw::ZaModelInterface zmi_;
 
+    boost::sml::sm<za_gazebo::StateMachine, boost::sml::thread_safe<std::mutex>> sm_;
     za::RobotState robot_state_;
 	std::unique_ptr<za_hw::ModelBase> model_;
     
     double tau_ext_lowpass_filter_;
 
     ros::Publisher robot_initialized_pub_;
+    ros::ServiceServer service_user_stop_;
     ros::ServiceClient service_controller_list_;
     ros::ServiceClient service_controller_switch_;
 };

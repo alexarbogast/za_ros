@@ -15,7 +15,7 @@ bool ControllerVerifier::isValidController(
     const hardware_interface::ControllerInfo& controller) const {
     for (const auto& claimed_resource : controller.claimed_resources) {
         if (hasControlMethod(claimed_resource)) {
-            return true;
+            return areValidJoints(claimed_resource.resources);
         }
     }
     return std::none_of(
@@ -25,8 +25,20 @@ bool ControllerVerifier::isValidController(
         });
 }
 
-bool ControllerVerifier::hasControlMethod(const hardware_interface::InterfaceResources& resource) {
-    return ControllerVerifier::determineControlMethod(resource.hardware_interface).is_initialized();
+bool ControllerVerifier::hasControlMethod(
+    const hardware_interface::InterfaceResources& resource) {
+    return ControllerVerifier::determineControlMethod(resource.hardware_interface)
+                .is_initialized();
+}
+
+bool ControllerVerifier::areValidJoints(const std::set<std::string>& resources) const {
+    return std::all_of(resources.begin(), resources.end(), 
+        [this](const std::string& joint_name) {
+        return std::find_if(joint_names_.begin(), joint_names_.end(),
+                            [&joint_name, this](const std::string& joint) {
+                            return joint == joint_name;
+                            }) != joint_names_.end();
+         });
 }
 
 boost::optional<ControlMethod> ControllerVerifier::determineControlMethod(

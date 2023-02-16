@@ -2,8 +2,19 @@
 
 #include <array>
 
+
 namespace za
 {
+/**
+ * Describes the robot's current mode.
+ */
+enum class RobotMode {
+  kOther,
+  kIdle,
+  kMove,
+  kUserStopped
+};
+
 struct RobotState
 {
     /**
@@ -176,26 +187,7 @@ struct RobotState
     * is the error between tau_J and the expected torques given by the robot model. Unit: \f$[Nm]\f$.
     */
     std::array<double, 6> tau_ext_hat_filtered{};
-
-    ///**
-    //* \f$^OF_{K,\text{ext}}\f$
-    //* Estimated external wrench (force, torque) acting on stiffness frame, expressed
-    //* relative to the @ref o-frame "base frame". Forces applied by the robot to the environment are
-    //* positive, while forces applied by the environment on the robot are negative. Becomes
-    //* \f$[0,0,0,0,0,0]\f$ when near or in a singularity. See also @ref k-frame "Stiffness frame K".
-    //* Unit: \f$[N,N,N,Nm,Nm,Nm]\f$.
-    //*/
-    //std::array<double, 6> O_F_ext_hat_K{};  // NOLINT(readability-identifier-naming)
-//
-    ///**
-    //* \f$^{K}F_{K,\text{ext}}\f$
-    //* Estimated external wrench (force, torque) acting on stiffness frame,
-    //* expressed relative to the stiffness frame. Forces applied by the robot to the environment are
-    //* positive, while forces applied by the environment on the robot are negative. Becomes
-    //* \f$[0,0,0,0,0,0]\f$ when near or in a singularity. See also @ref k-frame "Stiffness frame K".
-    //* Unit: \f$[N,N,N,Nm,Nm,Nm]\f$.
-    //*/
-    //std::array<double, 6> K_F_ext_hat_K{};  // NOLINT(readability-identifier-naming)
+    RobotMode robot_mode = RobotMode::kUserStopped;
 };
 
 }; // namespace za

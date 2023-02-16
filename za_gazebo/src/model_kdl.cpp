@@ -267,8 +267,24 @@ std::array<double, 6> ModelKDL::gravity(
   kq.data = Eigen::Matrix<double, 6, 1>(q.data());
 
   KDL::Chain chain = this->chain_;  // copy
-  augmentFrame("load", F_x_Ctotal, m_total, {1, 0, 0, 0, 1, 0, 0, 0, 1}, chain);
   KDL::ChainDynParam solver(chain, grav);
+
+  ///* ========= TEMPORARY ========== */
+  //std::cout << "Gravity: " << gravity_earth[0] << gravity_earth[1] << gravity_earth[2] << std::endl;
+//
+  //for (auto& seg : chain.segments)
+  //{
+  //  std::cout << "Name: " << seg.getName() << std::endl;
+  //  std::cout << "Joint: " << seg.getJoint().getName() << std::endl;
+//
+  //  auto cog = seg.getInertia().getCOG();
+  //  std::cout <<  "COG:" << cog.data[0] << cog.data[1] << cog.data[2] << std::endl;
+  //  
+  //  std::cout << "Mass: " << seg.getInertia().getMass() << std::endl;
+  //  auto rot = seg.getInertia().getRotationalInertia().data;
+  //  std::cout << "I: " << rot[0] <<" "<< rot[1] <<" "<< rot[2] <<"\n"<< rot[3] <<" "<< rot[4] <<" "<< rot[5]<<"\n" << rot[6] <<" "<< rot[7] <<" "<< rot[8] <<std::endl;
+  //}
+  ///* ============================= */
 
   int error = solver.JntToGravity(kq, kg);
   if (error != KDL::SolverI::E_NOERROR) {
@@ -280,4 +296,5 @@ std::array<double, 6> ModelKDL::gravity(
 
   return result;
 }
+
 }  // namespace franka_gazebo

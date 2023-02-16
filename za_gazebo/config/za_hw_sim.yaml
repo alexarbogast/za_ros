@@ -9,9 +9,9 @@ motion_generators:
       $(arg arm_id)_joint_1: { p: 600, d: 30, i: 0 }
       $(arg arm_id)_joint_2: { p: 600, d: 30, i: 0 }
       $(arg arm_id)_joint_3: { p: 600, d: 30, i: 0 }
-      $(arg arm_id)_joint_4: { p: 600, d: 30, i: 0 }
+      $(arg arm_id)_joint_4: { p: 600, d: 10, i: 0 }
       $(arg arm_id)_joint_5: { p: 250, d: 10, i: 0 }
-      $(arg arm_id)_joint_6: { p: 150, d: 10, i: 0 }
+      $(arg arm_id)_joint_6: { p: 50, d: 0.1, i: 0 }
   velocity:
     gains:
       $(arg arm_id)_joint_1: { p: 30, d: 0, i: 0 }

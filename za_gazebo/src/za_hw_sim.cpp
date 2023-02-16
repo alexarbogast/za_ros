@@ -6,17 +6,20 @@
 #include <gazebo_ros_control/robot_hw_sim.h>
 #include <joint_limits_interface/joint_limits_urdf.h>
 #include <std_msgs/Bool.h>
+#include <std_srvs/SetBool.h>
 #include <boost/algorithm/clamp.hpp>
 
-namespace za_gazebo
+namespace za_gazebo 
 {
+using boost::sml::state; 
+    
+ZaHWSim::ZaHWSim() : sm_(this->robot_state_, this->joints_) {}
 
 bool ZaHWSim::initSim(const std::string& robot_namespace,
                       ros::NodeHandle model_nh,
                       gazebo::physics::ModelPtr parent,
                       const urdf::Model* const urdf,
-                      std::vector<transmission_interface::TransmissionInfo> transmissions)
-{
+                      std::vector<transmission_interface::TransmissionInfo> transmissions) {
     model_nh.param<std::string>("arm_id", this->arm_id_, robot_namespace);
     if (this->arm_id_ != robot_namespace) {
     ROS_WARN_STREAM_NAMED(
@@ -89,7 +92,6 @@ bool ZaHWSim::initSim(const std::string& robot_namespace,
         }
         joint->handle = handle;
         this->joints_.emplace(joint->name, joint);
-        
     }
 
     // After the joint data containers have been fully initialized and their memory address don't
@@ -144,7 +146,7 @@ bool ZaHWSim::initSim(const std::string& robot_namespace,
                 double singularity_threshold;
                 model_nh.param<double>("singularity_warning_threshold", singularity_threshold, -1);
                 try {
-                  initZaModelHandle(this->arm_id_, *urdf, transmission, singularity_threshold);
+                  initZaModelHandle(model_nh, this->arm_id_, *urdf, transmission, singularity_threshold);
                   continue;
 
                 } catch (const std::invalid_argument& e) {
@@ -170,8 +172,9 @@ bool ZaHWSim::initSim(const std::string& robot_namespace,
 }
 
 void ZaHWSim::initJointStateHandle(const std::shared_ptr<za_gazebo::Joint>& joint) {
-    this->jsi_.registerHandle(hardware_interface::JointStateHandle(joint->name, &joint->position,
-                                                                   &joint->velocity, &joint->effort));
+    this->jsi_.registerHandle(
+        hardware_interface::JointStateHandle(joint->name, &joint->position,
+                                            &joint->velocity, &joint->effort));
 }
 
 void ZaHWSim::initEffortCommandHandle(const std::shared_ptr<za_gazebo::Joint>& joint) {
@@ -206,6 +209,7 @@ void ZaHWSim::initZaStateHandle(const std::string& robot,
 }
 
 void ZaHWSim::initZaModelHandle(
+    const ros::NodeHandle& nh,
     const std::string& robot,
     const urdf::Model& urdf,
     const transmission_interface::TransmissionInfo& transmission,
@@ -246,11 +250,23 @@ void ZaHWSim::initZaModelHandle(
         auto root_link = urdf.getJoint(root->name_)->parent_link_name;
         auto tip_link = urdf.getJoint(tip->name_)->child_link_name;
 
+        std::string eef_link; 
+        if(not nh.getParam("end_effector", eef_link)) {
+            eef_link = tip_link;
+        }
+        auto eef = urdf.getLink(eef_link);
+        if (eef != nullptr) {
+            ROS_INFO_STREAM_NAMED("za_hw_sim",
+                                "Found link '" << eef_link
+                                                << "' in URDF. Assuming it is defining the kinematics & "
+                                                    "inertias of the end effector");
+        }
+
         this->model_ =
-            std::make_unique<za_gazebo::ModelKDL>(urdf, root_link, tip_link, singularity_threshold);
+            std::make_unique<za_gazebo::ModelKDL>(urdf, root_link, eef_link, singularity_threshold);
 
     } catch (const std::invalid_argument& e) {
-        throw std::invalid_argument("Cannot create franka_hw/FrankaModelInterface for robot '" + robot +
+        throw std::invalid_argument("Cannot create za_hw/ZaModelInterface for robot '" + robot +
                                     "_model'. " + e.what());
     }
 
@@ -259,6 +275,13 @@ void ZaHWSim::initZaModelHandle(
 }
 
 void ZaHWSim::initServices(ros::NodeHandle& nh) {
+    this->service_user_stop_ =
+        nh.advertiseService<std_srvs::SetBool::Request, std_srvs::SetBool::Response>(
+            "franka_control/set_user_stop", [&](auto& request, auto& response) {
+                this->sm_.process_event(UserStop{static_cast<bool>(request.data)});
+                response.success = true;
+                return true;
+            });
     this->service_controller_list_ = nh.serviceClient<controller_manager_msgs::ListControllers>(
       "controller_manager/list_controllers");
     this->service_controller_switch_ = nh.serviceClient<controller_manager_msgs::SwitchController>(
@@ -274,7 +297,10 @@ void ZaHWSim::writeSim(ros::Time /*time*/, ros::Duration period) {
         // Retrieve effort control command
         double effort = 0;
 
-        if (joint->control_method == POSITION) {
+        if (not sm_.is(state<Move>)) {
+            effort = positionControl(*joint, joint->desired_position, period);
+        }
+        else if (joint->control_method == POSITION) {
             effort = positionControl(*joint, joint->desired_position, period);
         } 
         else if (joint->control_method == VELOCITY) {
@@ -342,73 +368,75 @@ bool ZaHWSim::readParameters(const ros::NodeHandle& nh, const urdf::Model& urdf)
 }
 
 void ZaHWSim::guessEndEffector(const ros::NodeHandle& nh, const urdf::Model& urdf) {
-    std::string eef_link; 
-    if(not nh.getParam("end_effector", eef_link)) {
-        eef_link = arm_id_ + "_flange";
-    }
-    auto eef = urdf.getLink(eef_link);
-    if (eef != nullptr) {
-        ROS_INFO_STREAM_NAMED("za_hw_sim",
-                              "Found link '" << eef_link
-                                             << "' in URDF. Assuming it is defining the kinematics & "
-                                                "inertias of a Franka Hand Gripper.");
-    }
+    //std::string eef_link; 
+    //if(not nh.getParam("end_effector", eef_link)) {
+    //    eef_link = arm_id_ + "_flange";
+    //}
+    //auto eef = urdf.getLink(eef_link);
+    //if (eef != nullptr) {
+    //    ROS_INFO_STREAM_NAMED("za_hw_sim",
+    //                          "Found link '" << eef_link
+    //                                         << "' in URDF. Assuming it is defining the kinematics & "
+    //                                            "inertias of a Franka Hand Gripper.");
+    //}
 
     // By absolute default unless URDF or ROS params say otherwise, assume no end-effector.
-    double def_m_ee = 0;
-    std::string def_i_ee = "0.0 0 0 0 0.0 0 0 0 0.0";
-    std::string def_f_x_cee = "0 0 0";
-    std::string def_f_t_ne = "1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1";
+    //double def_m_ee = 0;
+    //std::string def_i_ee = "0.0 0 0 0 0.0 0 0 0 0.0";
+    //std::string def_f_x_cee = "0 0 0";
+    //std::string def_f_t_ne = "1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1";
     //if (not nh.hasParam("F_T_NE") and eef != nullptr) {
     //    // NOTE: We cannot interprete the Joint pose from the URDF directly, because
     //    // its <arm_id>_link is mounted at the flange directly and not at NE
-    //    def_f_t_ne = "1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1";
+    //    def_f_t_ne = "0 0 -1 0 0 1 0 0 1 0 0 0 0.08613 0.0 -0.159 1";
     //}
-    std::string F_T_NE;  // NOLINT [readability-identifier-naming]
-    nh.param<std::string>("F_T_NE", F_T_NE, def_f_t_ne);
-    this->robot_state_.F_T_NE = readArray<16>(F_T_NE, "F_T_NE");
+    //std::string F_T_NE;  // NOLINT [readability-identifier-naming]
+    //nh.param<std::string>("F_T_NE", F_T_NE, def_f_t_ne);
+    //this->robot_state_.F_T_NE = readArray<16>(F_T_NE, "F_T_NE");
 
-    if (not nh.hasParam("m_ee") and eef != nullptr) {
-        if (eef->inertial == nullptr) {
-        throw std::invalid_argument("Trying to use inertia of " + eef_link +
-                                    " but this link has no <inertial> tag defined in it.");
-        }
-        def_m_ee = eef->inertial->mass;
-    }
-    nh.param<double>("m_ee", this->robot_state_.m_ee, def_m_ee);
+    //if (not nh.hasParam("m_ee") and eef != nullptr) {
+    //    if (eef->inertial == nullptr) {
+    //    throw std::invalid_argument("Trying to use inertia of " + eef_link +
+    //                                " but this link has no <inertial> tag defined in it.");
+    //    }
+    //    def_m_ee = eef->inertial->mass;
+    //}
+    //nh.param<double>("m_ee", this->robot_state_.m_ee, def_m_ee);
 
-    if (not nh.hasParam("I_ee") and eef != nullptr) {
-        if (eef->inertial == nullptr) {
-        throw std::invalid_argument("Trying to use inertia of " + eef_link +
-                                    " but this link has no <inertial> tag defined in it.");
-        }
-        // clang-format off
-        def_i_ee = std::to_string(eef->inertial->ixx) + " " + std::to_string(eef->inertial->ixy) + " " + std::to_string(eef->inertial->ixz) + " "
-                 + std::to_string(eef->inertial->ixy) + " " + std::to_string(eef->inertial->iyy) + " " + std::to_string(eef->inertial->iyz) + " "
-                 + std::to_string(eef->inertial->ixz) + " " + std::to_string(eef->inertial->iyz) + " " + std::to_string(eef->inertial->izz);
-        // clang-format on
-    }
-    std::string I_ee;  // NOLINT [readability-identifier-naming]
-    nh.param<std::string>("I_ee", I_ee, def_i_ee);
-    this->robot_state_.I_ee = readArray<9>(I_ee, "I_ee");
-
-    if (not nh.hasParam("F_x_Cee") and eef != nullptr) {
-        if (eef->inertial == nullptr) {
-        throw std::invalid_argument("Trying to use inertia of " + eef_link +
-                                    " but this link has no <inertial> tag defined in it.");
-        }
-        def_f_x_cee = std::to_string(eef->inertial->origin.position.x) + " " +
-                      std::to_string(eef->inertial->origin.position.y) + " " +
-                      std::to_string(eef->inertial->origin.position.z);
-    }
-    std::string F_x_Cee;  // NOLINT [readability-identifier-naming]
-    nh.param<std::string>("F_x_Cee", F_x_Cee, def_f_x_cee);
-    std::cout << def_f_x_cee << std::endl;
-    this->robot_state_.F_x_Cee = readArray<3>(F_x_Cee, "F_x_Cee");
+    //if (not nh.hasParam("I_ee") and eef != nullptr) {
+    //    if (eef->inertial == nullptr) {
+    //    throw std::invalid_argument("Trying to use inertia of " + eef_link +
+    //                                " but this link has no <inertial> tag defined in it.");
+    //    }
+    //    // clang-format off
+    //    def_i_ee = std::to_string(eef->inertial->ixx) + " " + std::to_string(eef->inertial->ixy) + " " + std::to_string(eef->inertial->ixz) + " "
+    //             + std::to_string(eef->inertial->ixy) + " " + std::to_string(eef->inertial->iyy) + " " + std::to_string(eef->inertial->iyz) + " "
+    //             + std::to_string(eef->inertial->ixz) + " " + std::to_string(eef->inertial->iyz) + " " + std::to_string(eef->inertial->izz);
+    //    // clang-format on
+    //}
+    //std::string I_ee;  // NOLINT [readability-identifier-naming]
+    //nh.param<std::string>("I_ee", I_ee, def_i_ee);
+    //this->robot_state_.I_ee = readArray<9>(I_ee, "I_ee");
+//
+    //if (not nh.hasParam("F_x_Cee") and eef != nullptr) {
+    //    if (eef->inertial == nullptr) {
+    //    throw std::invalid_argument("Trying to use inertia of " + eef_link +
+    //                                " but this link has no <inertial> tag defined in it.");
+    //    }
+    //    def_f_x_cee = std::to_string(eef->inertial->origin.position.x) + " " +
+    //                  std::to_string(eef->inertial->origin.position.y) + " " +
+    //                  std::to_string(eef->inertial->origin.position.z);
+    //}
+    //std::string F_x_Cee;  // NOLINT [readability-identifier-naming]
+    //nh.param<std::string>("F_x_Cee", F_x_Cee, def_f_x_cee);
+    //std::cout << def_f_x_cee << std::endl;
+    //this->robot_state_.F_x_Cee = readArray<3>(F_x_Cee, "F_x_Cee");
 }
 
 void ZaHWSim::restartControllers() 
 {
+    std::cout << "RESTART CONTROLLERS CALLED" << std::endl;
+    
     // Restart controllers by stopping and starting all running ones
     auto name = this->service_controller_list_.getService();
     if (not this->service_controller_list_.waitForExistence(ros::Duration(3))) 
@@ -534,11 +562,6 @@ void ZaHWSim::updateRobotState(ros::Time time)
     za_control::pseudoInverse(j0.transpose(), j0_transpose_pinv);
     za_control::pseudoInverse(jk.transpose(), jk_transpose_pinv);
 
-    //Eigen::VectorXd f_ext_0 = j0_transpose_pinv * tau_ext;
-    //Eigen::VectorXd f_ext_k = jk_transpose_pinv * tau_ext;
-    //Eigen::VectorXd::Map(&this->robot_state_.O_F_ext_hat_K[0], 6) = f_ext_0;
-    //Eigen::VectorXd::Map(&this->robot_state_.K_F_ext_hat_K[0], 6) = f_ext_k;
-
     this->robot_state_.O_T_EE = this->model_->pose(za::Frame::kEndEffector, this->robot_state_);
 
     std_msgs::Bool msg;
@@ -569,6 +592,8 @@ void ZaHWSim::doSwitch(const std::list<hardware_interface::ControllerInfo>& star
     joint.desired_position = joint.position;
     joint.desired_velocity = 0;
   });
+
+  this->sm_.process_event(SwitchControl());
 }
 
 void ZaHWSim::forControlledJoint(

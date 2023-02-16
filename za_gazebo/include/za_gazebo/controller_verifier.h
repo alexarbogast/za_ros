@@ -16,6 +16,7 @@ public:
                        const std::string& arm_id);
 
     bool isValidController(const hardware_interface::ControllerInfo& controller) const;
+    bool areValidJoints(const std::set<std::string>& resources) const;
 
     static boost::optional<ControlMethod> determineControlMethod(
         const std::string& hardware_interface);
