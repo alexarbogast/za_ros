@@ -1,6 +1,6 @@
 #include <za_gazebo/za_hw_sim.h>
 #include <za_gazebo/model_kdl.h>
-#include <za_control/pseudo_inversion.h>
+#include <za_controllers/pseudo_inversion.h>
 #include <controller_manager_msgs/ListControllers.h>
 #include <controller_manager_msgs/SwitchController.h>
 #include <gazebo_ros_control/robot_hw_sim.h>
@@ -83,8 +83,7 @@ bool ZaHWSim::initSim(const std::string& robot_namespace,
 
         // Get a handle to the underlying Gazebo Joint
         gazebo::physics::JointPtr handle = parent->GetJoint(joint->name);
-        if (not handle)
-        {
+        if (not handle) {
             ROS_ERROR_STREAM_NAMED("za_hw_sim", "This robot has a joint named '"
                                                       << joint->name
                                                       << "' which is not in the gazebo model.");
@@ -165,6 +164,7 @@ bool ZaHWSim::initSim(const std::string& robot_namespace,
     registerInterface(&this->vji_);
     registerInterface(&this->jsi_);
     registerInterface(&this->zsi_);
+    registerInterface(&this->zmi_);
 
     initServices(model_nh);
     verifier_ = std::make_unique<ControllerVerifier>(joints_, arm_id_);
@@ -184,17 +184,20 @@ void ZaHWSim::initEffortCommandHandle(const std::shared_ptr<za_gazebo::Joint>& j
 
 void ZaHWSim::initVelocityCommandHandle(const std::shared_ptr<za_gazebo::Joint>& joint) {
     this->vji_.registerHandle(
-        hardware_interface::JointHandle(this->jsi_.getHandle(joint->name), &joint->velocity));
+        hardware_interface::JointHandle(this->jsi_.getHandle(joint->name), &joint->desired_velocity));
 }
 
 void ZaHWSim::initPositionCommandHandle(const std::shared_ptr<za_gazebo::Joint>& joint) {
     this->pji_.registerHandle(
-        hardware_interface::JointHandle(this->jsi_.getHandle(joint->name), &joint->position));
+        hardware_interface::JointHandle(this->jsi_.getHandle(joint->name), &joint->desired_position));
 }
 
 void ZaHWSim::initZaStateHandle(const std::string& robot,
                                 const urdf::Model& urdf,
                                 const transmission_interface::TransmissionInfo& transmission) {
+    // Initialize robot_mode to "Idle". Once a controller is started, we will switch to "Move"
+    this->robot_state_.robot_mode = za::RobotMode::kIdle;
+
     // Check if all joints defined in the <transmission> actually exist in the URDF
     for (const auto& joint : transmission.joints_) {
         if (not urdf.getJoint(joint.name_)) {
@@ -288,6 +291,44 @@ void ZaHWSim::initServices(ros::NodeHandle& nh) {
         "controller_manager/switch_controller");
 }
 
+bool ZaHWSim::readParameters(const ros::NodeHandle& nh, const urdf::Model& urdf) {
+  try {
+    nh.param<double>("m_load", this->robot_state_.m_load, 0);
+
+    std::string I_load;  // NOLINT [readability-identifier-naming]
+    nh.param<std::string>("I_load", I_load, "0 0 0 0 0 0 0 0 0");
+    this->robot_state_.I_load = readArray<9>(I_load, "I_load");
+
+    std::string F_x_Cload;  // NOLINT [readability-identifier-naming]
+    nh.param<std::string>("F_x_Cload", F_x_Cload, "0 0 0");
+    this->robot_state_.F_x_Cload = readArray<3>(F_x_Cload, "F_x_Cload");
+
+    std::string NE_T_EE;  // NOLINT [readability-identifier-naming]
+    nh.param<std::string>("NE_T_EE", NE_T_EE, "1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1");
+    this->robot_state_.NE_T_EE = readArray<16>(NE_T_EE, "NE_T_EE");
+
+    std::string gravity_vector;
+    if (nh.getParam("gravity_vector", gravity_vector)) {
+      this->gravity_earth_ = readArray<3>(gravity_vector, "gravity_vector");
+    }
+
+  } catch (const std::invalid_argument& e) {
+    ROS_ERROR_STREAM_NAMED("franka_hw_sim", e.what());
+    return false;
+  }
+  updateRobotStateDynamics();
+  return true;
+}
+
+void ZaHWSim::readSim(ros::Time time, ros::Duration period)
+{
+    for (const auto& pair : this->joints_) {
+        auto joint = pair.second;
+        joint->update(period);
+    }
+    this->updateRobotState(time);
+}
+
 void ZaHWSim::writeSim(ros::Time /*time*/, ros::Duration period) {
     auto g = this->model_->gravity(this->robot_state_, this->gravity_earth_);
 
@@ -324,149 +365,6 @@ void ZaHWSim::writeSim(ros::Time /*time*/, ros::Duration period) {
             continue;
         }
         joint->handle->SetForce(0, effort);
-    }
-}
-
-void ZaHWSim::readSim(ros::Time time, ros::Duration period)
-{
-    for (const auto& pair : this->joints_) {
-        auto joint = pair.second;
-        joint->update(period);
-    }
-    this->updateRobotState(time);
-}
-
-bool ZaHWSim::readParameters(const ros::NodeHandle& nh, const urdf::Model& urdf) {
-  try {
-    guessEndEffector(nh, urdf);
-
-    nh.param<double>("m_load", this->robot_state_.m_load, 0);
-
-    std::string I_load;  // NOLINT [readability-identifier-naming]
-    nh.param<std::string>("I_load", I_load, "0 0 0 0 0 0 0 0 0");
-    this->robot_state_.I_load = readArray<9>(I_load, "I_load");
-
-    std::string F_x_Cload;  // NOLINT [readability-identifier-naming]
-    nh.param<std::string>("F_x_Cload", F_x_Cload, "0 0 0");
-    this->robot_state_.F_x_Cload = readArray<3>(F_x_Cload, "F_x_Cload");
-
-    std::string NE_T_EE;  // NOLINT [readability-identifier-naming]
-    nh.param<std::string>("NE_T_EE", NE_T_EE, "1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1");
-    this->robot_state_.NE_T_EE = readArray<16>(NE_T_EE, "NE_T_EE");
-
-    std::string gravity_vector;
-    if (nh.getParam("gravity_vector", gravity_vector)) {
-      this->gravity_earth_ = readArray<3>(gravity_vector, "gravity_vector");
-    }
-
-  } catch (const std::invalid_argument& e) {
-    ROS_ERROR_STREAM_NAMED("franka_hw_sim", e.what());
-    return false;
-  }
-  updateRobotStateDynamics();
-  return true;
-}
-
-void ZaHWSim::guessEndEffector(const ros::NodeHandle& nh, const urdf::Model& urdf) {
-    //std::string eef_link; 
-    //if(not nh.getParam("end_effector", eef_link)) {
-    //    eef_link = arm_id_ + "_flange";
-    //}
-    //auto eef = urdf.getLink(eef_link);
-    //if (eef != nullptr) {
-    //    ROS_INFO_STREAM_NAMED("za_hw_sim",
-    //                          "Found link '" << eef_link
-    //                                         << "' in URDF. Assuming it is defining the kinematics & "
-    //                                            "inertias of a Franka Hand Gripper.");
-    //}
-
-    // By absolute default unless URDF or ROS params say otherwise, assume no end-effector.
-    //double def_m_ee = 0;
-    //std::string def_i_ee = "0.0 0 0 0 0.0 0 0 0 0.0";
-    //std::string def_f_x_cee = "0 0 0";
-    //std::string def_f_t_ne = "1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1";
-    //if (not nh.hasParam("F_T_NE") and eef != nullptr) {
-    //    // NOTE: We cannot interprete the Joint pose from the URDF directly, because
-    //    // its <arm_id>_link is mounted at the flange directly and not at NE
-    //    def_f_t_ne = "0 0 -1 0 0 1 0 0 1 0 0 0 0.08613 0.0 -0.159 1";
-    //}
-    //std::string F_T_NE;  // NOLINT [readability-identifier-naming]
-    //nh.param<std::string>("F_T_NE", F_T_NE, def_f_t_ne);
-    //this->robot_state_.F_T_NE = readArray<16>(F_T_NE, "F_T_NE");
-
-    //if (not nh.hasParam("m_ee") and eef != nullptr) {
-    //    if (eef->inertial == nullptr) {
-    //    throw std::invalid_argument("Trying to use inertia of " + eef_link +
-    //                                " but this link has no <inertial> tag defined in it.");
-    //    }
-    //    def_m_ee = eef->inertial->mass;
-    //}
-    //nh.param<double>("m_ee", this->robot_state_.m_ee, def_m_ee);
-
-    //if (not nh.hasParam("I_ee") and eef != nullptr) {
-    //    if (eef->inertial == nullptr) {
-    //    throw std::invalid_argument("Trying to use inertia of " + eef_link +
-    //                                " but this link has no <inertial> tag defined in it.");
-    //    }
-    //    // clang-format off
-    //    def_i_ee = std::to_string(eef->inertial->ixx) + " " + std::to_string(eef->inertial->ixy) + " " + std::to_string(eef->inertial->ixz) + " "
-    //             + std::to_string(eef->inertial->ixy) + " " + std::to_string(eef->inertial->iyy) + " " + std::to_string(eef->inertial->iyz) + " "
-    //             + std::to_string(eef->inertial->ixz) + " " + std::to_string(eef->inertial->iyz) + " " + std::to_string(eef->inertial->izz);
-    //    // clang-format on
-    //}
-    //std::string I_ee;  // NOLINT [readability-identifier-naming]
-    //nh.param<std::string>("I_ee", I_ee, def_i_ee);
-    //this->robot_state_.I_ee = readArray<9>(I_ee, "I_ee");
-//
-    //if (not nh.hasParam("F_x_Cee") and eef != nullptr) {
-    //    if (eef->inertial == nullptr) {
-    //    throw std::invalid_argument("Trying to use inertia of " + eef_link +
-    //                                " but this link has no <inertial> tag defined in it.");
-    //    }
-    //    def_f_x_cee = std::to_string(eef->inertial->origin.position.x) + " " +
-    //                  std::to_string(eef->inertial->origin.position.y) + " " +
-    //                  std::to_string(eef->inertial->origin.position.z);
-    //}
-    //std::string F_x_Cee;  // NOLINT [readability-identifier-naming]
-    //nh.param<std::string>("F_x_Cee", F_x_Cee, def_f_x_cee);
-    //std::cout << def_f_x_cee << std::endl;
-    //this->robot_state_.F_x_Cee = readArray<3>(F_x_Cee, "F_x_Cee");
-}
-
-void ZaHWSim::restartControllers() 
-{
-    std::cout << "RESTART CONTROLLERS CALLED" << std::endl;
-    
-    // Restart controllers by stopping and starting all running ones
-    auto name = this->service_controller_list_.getService();
-    if (not this->service_controller_list_.waitForExistence(ros::Duration(3))) 
-    {
-      throw std::runtime_error("Cannot find service '" + name +
-                               "'. Is the controller_manager running?");
-    }
-
-    controller_manager_msgs::ListControllers list;
-    if (not this->service_controller_list_.call(list)) 
-    {
-      throw std::runtime_error("Service call '" + name + "' failed");
-    }
-
-    controller_manager_msgs::SwitchController swtch;
-    for (const auto& controller : list.response.controller)
-    {
-      if (controller.state != "running") {
-        continue;
-      }
-      swtch.request.stop_controllers.push_back(controller.name);
-      swtch.request.start_controllers.push_back(controller.name);
-    }
-    swtch.request.start_asap = static_cast<decltype(swtch.request.start_asap)>(true);
-    swtch.request.strictness = controller_manager_msgs::SwitchControllerRequest::STRICT;
-    if (not this->service_controller_switch_.call(swtch) or
-        not static_cast<bool>(swtch.response.ok)) 
-    {
-      throw std::runtime_error("Service call '" + this->service_controller_switch_.getService() +
-                               "' failed");
     }
 }
 
@@ -559,8 +457,8 @@ void ZaHWSim::updateRobotState(ros::Time time)
         this->model_->zeroJacobian(za::Frame::kEndEffector, this->robot_state_).data());
     Eigen::Matrix<double, 6, 6> jk(
         this->model_->bodyJacobian(za::Frame::kEndEffector, this->robot_state_).data());
-    za_control::pseudoInverse(j0.transpose(), j0_transpose_pinv);
-    za_control::pseudoInverse(jk.transpose(), jk_transpose_pinv);
+    za_controllers::pseudoInverse(j0.transpose(), j0_transpose_pinv);
+    za_controllers::pseudoInverse(jk.transpose(), jk_transpose_pinv);
 
     this->robot_state_.O_T_EE = this->model_->pose(za::Frame::kEndEffector, this->robot_state_);
 
@@ -569,6 +467,42 @@ void ZaHWSim::updateRobotState(ros::Time time)
     this->robot_initialized_ = true;
     this->robot_initialized_pub_.publish(msg);
 }
+
+void ZaHWSim::restartControllers() 
+{
+    // Restart controllers by stopping and starting all running ones
+    auto name = this->service_controller_list_.getService();
+    if (not this->service_controller_list_.waitForExistence(ros::Duration(3))) 
+    {
+      throw std::runtime_error("Cannot find service '" + name +
+                               "'. Is the controller_manager running?");
+    }
+
+    controller_manager_msgs::ListControllers list;
+    if (not this->service_controller_list_.call(list)) 
+    {
+      throw std::runtime_error("Service call '" + name + "' failed");
+    }
+
+    controller_manager_msgs::SwitchController swtch;
+    for (const auto& controller : list.response.controller)
+    {
+      if (controller.state != "running") {
+        continue;
+      }
+      swtch.request.stop_controllers.push_back(controller.name);
+      swtch.request.start_controllers.push_back(controller.name);
+    }
+    swtch.request.start_asap = static_cast<decltype(swtch.request.start_asap)>(true);
+    swtch.request.strictness = controller_manager_msgs::SwitchControllerRequest::STRICT;
+    if (not this->service_controller_switch_.call(swtch) or
+        not static_cast<bool>(swtch.response.ok)) 
+    {
+      throw std::runtime_error("Service call '" + this->service_controller_switch_.getService() +
+                               "' failed");
+    }
+}
+
 
 bool ZaHWSim::prepareSwitch(
     const std::list<hardware_interface::ControllerInfo>& start_list,

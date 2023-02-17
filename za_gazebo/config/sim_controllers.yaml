@@ -35,6 +35,17 @@ effort_joint_trajectory_controller:
     $(arg arm_id)_joint_5: { goal: 0.05 }
     $(arg arm_id)_joint_6: { goal: 0.05 }
 
+cartesian_velocity_controller:
+  type: za_controllers/CartesianVelocityController
+  arm_id: $(arg arm_id)
+  joints:
+    - $(arg arm_id)_joint_1
+    - $(arg arm_id)_joint_2
+    - $(arg arm_id)_joint_3
+    - $(arg arm_id)_joint_4
+    - $(arg arm_id)_joint_5
+    - $(arg arm_id)_joint_6
+
 joint_velocity_controller:
   type: velocity_controllers/JointGroupVelocityController
   joints:
@@ -44,11 +55,3 @@ joint_velocity_controller:
     - $(arg arm_id)_joint_4
     - $(arg arm_id)_joint_5
     - $(arg arm_id)_joint_6
-
-  gains: # Required because we're controlling a velocity interface
-    $(arg arm_id)_joint_1: {p: 100, d: 0.0, i: 0, i_clamp: 0}
-    $(arg arm_id)_joint_2: {p: 100, d: 0.0, i: 0, i_clamp: 0}
-    $(arg arm_id)_joint_3: {p: 100, d: 0.0, i: 0, i_clamp: 0}
-    $(arg arm_id)_joint_4: {p: 100, d: 0.0, i: 0, i_clamp: 0}
-    $(arg arm_id)_joint_5: {p: 100, d: 0.0, i: 0, i_clamp: 0}
-    $(arg arm_id)_joint_6: {p: 100, d: 0.0, i: 0, i_clamp: 0}

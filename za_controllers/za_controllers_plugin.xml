@@ -1,0 +1,7 @@
+<library path="lib/libza_controllers">
+  <class name="za_controllers/CartesianVelocityController" type="za_controllers::CartesianVelocityController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      A controller that executes a short motion based on cartesian velocities
+    </description>
+  </class>
+</library>

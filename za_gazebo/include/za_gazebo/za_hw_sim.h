@@ -98,7 +98,6 @@ protected:
 
     void initServices(ros::NodeHandle& nh);
     bool readParameters(const ros::NodeHandle& nh, const urdf::Model& urdf);
-    void guessEndEffector(const ros::NodeHandle& nh, const urdf::Model& urdf);
 
     void restartControllers(); 
 

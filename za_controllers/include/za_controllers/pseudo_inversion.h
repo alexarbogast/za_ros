@@ -11,7 +11,7 @@
 #include <Eigen/LU>
 #include <Eigen/SVD>
 
-namespace za_control {
+namespace za_controllers {
 
 inline void pseudoInverse(const Eigen::MatrixXd& M_, Eigen::MatrixXd& M_pinv_, bool damped = true) {
     double lambda_ = damped ? 0.2 : 0.0;

@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
     urdf
     za_hw
     za_control
+    za_controllers
 )
 
 catkin_package(
@@ -34,6 +35,7 @@ catkin_package(
         urdf
         za_hw
         za_control
+        za_controllers
 )
 
 link_directories(

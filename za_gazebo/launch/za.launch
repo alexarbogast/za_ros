@@ -13,10 +13,10 @@
   <arg name="initial_joint_positions"
        doc="Initial joint configuration of the za6. Specify as a list of name/value pairs in form of '-J [name-of-joint] [value-in-rad]'. Default is a 90 degree bend in the elbow"
        default="-J $(arg arm_id)_joint_1 0
-                -J $(arg arm_id)_joint_2 0
-                -J $(arg arm_id)_joint_3 0
+                -J $(arg arm_id)_joint_2 0.53
+                -J $(arg arm_id)_joint_3 0.47
                 -J $(arg arm_id)_joint_4 0
-                -J $(arg arm_id)_joint_5 0
+                -J $(arg arm_id)_joint_5 -1
                 -J $(arg arm_id)_joint_6 0"
        />
 

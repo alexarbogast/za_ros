@@ -6,8 +6,7 @@ namespace za_gazebo
 {
 void Joint::update(const ros::Duration& dt) 
 {
-    if (not this->handle) 
-    {
+    if (not this->handle) { 
         return;
     }
 
@@ -15,8 +14,7 @@ void Joint::update(const ros::Duration& dt)
     double position = this->handle->Position(0);
 
     ignition::math::Vector3d f;
-    switch (this->type) 
-    {
+    switch (this->type)  {
         case urdf::Joint::PRISMATIC:
             this->position = position;
             f = this->handle->GetForceTorque(0).body2Force;
@@ -31,8 +29,7 @@ void Joint::update(const ros::Duration& dt)
     }
     this->effort = Eigen::Vector3d(f.X(), f.Y(), f.Z()).dot(this->axis);
 
-    if (std::isnan(this->lastVelocity))
-    {
+    if (std::isnan(this->lastVelocity)) {
         this->lastVelocity = this->velocity;
     }
     this->acceleration = (this->velocity - this->lastVelocity) / dt.toSec();

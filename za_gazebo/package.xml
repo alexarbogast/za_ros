@@ -22,6 +22,7 @@
   <depend>urdf</depend>
   <depend>za_hw</depend>
   <depend>za_control</depend>
+  <depend>za_controllers</depend>
 
   <export>
     <gazebo_ros_control plugin="${prefix}/za_hw_sim_plugin.xml" />
