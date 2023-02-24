@@ -46,6 +46,20 @@ cartesian_velocity_controller:
     - $(arg arm_id)_joint_5
     - $(arg arm_id)_joint_6
 
+cartesian_posvel_controller:
+  type: za_controllers/CartesianPosVelController
+  Kp: 10
+  Ko: 1
+  arm_id: $(arg arm_id)
+  joints:
+    - $(arg arm_id)_joint_1
+    - $(arg arm_id)_joint_2
+    - $(arg arm_id)_joint_3
+    - $(arg arm_id)_joint_4
+    - $(arg arm_id)_joint_5
+    - $(arg arm_id)_joint_6
+
+
 joint_velocity_controller:
   type: velocity_controllers/JointGroupVelocityController
   joints:

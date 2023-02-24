@@ -4,4 +4,9 @@
       A controller that executes a short motion based on cartesian velocities
     </description>
   </class>
+  <class name="za_controllers/CartesianPosVelController" type="za_controllers::CartesianPosVelController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      A controller that executes a short motion based on cartesian velocities and position
+    </description>
+  </class>
 </library>

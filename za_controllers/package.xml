@@ -15,6 +15,7 @@
   <depend>dynamic_reconfigure</depend>
   <depend>eigen_conversions</depend>
   <depend>za_hw</depend>
+  <depend>za_msgs</depend>
   <depend>hardware_interface</depend>
   <depend>joint_limits_interface</depend>
   <depend>pluginlib</depend>

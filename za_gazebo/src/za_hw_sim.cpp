@@ -49,13 +49,13 @@ bool ZaHWSim::initSim(const std::string& robot_namespace,
             continue;
         }
         if (transmission.joints_.empty()) {
-            ROS_WARN_STREAM_NAMED("hydra_hw_sim",
+            ROS_WARN_STREAM_NAMED("za_hw_sim",
                             "Transmission " << transmission.name_ << " has no associated joints.");
             return false;
         }
         if (transmission.joints_.size() > 1) {
             ROS_WARN_STREAM_NAMED(
-                "hydra_hw_sim",
+                "za_hw_sim",
                 "Transmission "
                     << transmission.name_
                     << " has more than one joint. Currently the za robot hardware simulation "
@@ -280,7 +280,7 @@ void ZaHWSim::initZaModelHandle(
 void ZaHWSim::initServices(ros::NodeHandle& nh) {
     this->service_user_stop_ =
         nh.advertiseService<std_srvs::SetBool::Request, std_srvs::SetBool::Response>(
-            "franka_control/set_user_stop", [&](auto& request, auto& response) {
+            "za_control/set_user_stop", [&](auto& request, auto& response) {
                 this->sm_.process_event(UserStop{static_cast<bool>(request.data)});
                 response.success = true;
                 return true;
@@ -502,7 +502,6 @@ void ZaHWSim::restartControllers()
                                "' failed");
     }
 }
-
 
 bool ZaHWSim::prepareSwitch(
     const std::list<hardware_interface::ControllerInfo>& start_list,

@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   dynamic_reconfigure
   eigen_conversions
   za_hw
+  za_msgs
   geometry_msgs
   hardware_interface
   joint_limits_interface
@@ -29,6 +30,7 @@ catkin_package(
   dynamic_reconfigure
   eigen_conversions
   za_hw
+  za_msgs
   geometry_msgs
   hardware_interface
   joint_limits_interface
@@ -41,6 +43,7 @@ catkin_package(
 
 add_library(za_controllers
     src/cartesian_velocity_controller.cpp
+    src/cartesian_posvel_controller.cpp
 )
 add_dependencies(za_controllers
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
