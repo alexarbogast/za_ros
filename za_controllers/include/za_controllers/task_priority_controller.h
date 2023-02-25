@@ -11,6 +11,8 @@
 #include <za_msgs/PosVelSetpoint.h>
 #include <Eigen/Dense>
 
+#include <za_controllers/taskpriority_paramConfig.h>
+
 namespace za_controllers {
 
 class TaskPriorityController : public controller_interface::MultiInterfaceController<
@@ -31,11 +33,17 @@ private:
 
     // setpoint
     Eigen::Vector3d position_d_;
-    Eigen::Quaterniond orientation_d_;
+    Eigen::Vector3d z_align_;
     Eigen::Matrix<double, 6, 1> twist_setpoint_;
     std::mutex pose_twist_setpoint_mutex_;
 
-    double Kp, Ko;
+    // Dynamic reconfigure
+    std::unique_ptr<dynamic_reconfigure::Server<za_controllers::taskpriority_paramConfig>>
+        dynamic_server_posvel_param_;
+    ros::NodeHandle dynamic_reconfigure_posvel_param_node_;
+    double Kp_, Ko_;
+    void posvelParamCallback(za_controllers::taskpriority_paramConfig& config,
+                             uint32_t level);
 
     ros::Subscriber sub_command_;
     void commandCallback(const za_msgs::PosVelSetpointPtr& msg);

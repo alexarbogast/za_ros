@@ -20,10 +20,18 @@ bool TaskPriorityController::init(hardware_interface::RobotHW* robot_hw,
         return false;
     }
 
-    if (not node_handle.getParam("Kp", Kp) or not node_handle.getParam("Ko", Ko)) {
+    if (not node_handle.getParam("Kp", Kp_) or not node_handle.getParam("Ko", Ko_)) {
         ROS_ERROR("Missing controller gains 'Kp' or 'Ko");
         return false;
     }
+
+    std::vector<double> z_align;
+    if (not node_handle.getParam("z_align", z_align)) {
+        ROS_ERROR("Missing z alignment axis 'z_align'");
+        return false;
+    }
+    z_align_ = Eigen::Map<Eigen::Vector3d, Eigen::Unaligned>
+        (z_align.data(), z_align.size());
 
     // get interface to joints
     auto* velocity_joint_interface_ = robot_hw->get<hardware_interface::VelocityJointInterface>();
@@ -98,7 +106,6 @@ bool TaskPriorityController::init(hardware_interface::RobotHW* robot_hw,
     }
 
     position_d_.setZero();
-    orientation_d_.coeffs() << 0.0, 0.0, 0.0, 1.0;
     twist_setpoint_.setZero();
     return true;
 }
@@ -108,7 +115,6 @@ void TaskPriorityController::starting(const ros::Time&) {
 
     Eigen::Affine3d initial_transformation(Eigen::Matrix4d::Map(initial_state.O_T_EE.data()));
     position_d_ = initial_transformation.translation();
-    orientation_d_ = Eigen::Quaterniond(initial_transformation.rotation());
 }
 
 void TaskPriorityController::update(const ros::Time& /*time*/, const ros::Duration& period) {
@@ -123,10 +129,12 @@ void TaskPriorityController::update(const ros::Time& /*time*/, const ros::Durati
     za_controllers::pseudoInverse(jacobian, jacobian_pinv, false);
 
     // task tracking
-    Eigen::Vector3d pose_error = Kp * (position_d_ - pose.translation());
-    Eigen::Quaterniond orient_errorq =
-        orientation_d_ * Eigen::Quaterniond(pose.rotation()).inverse();
-    Eigen::Vector3d orient_error = Eigen::Vector3d::Zero();
+    Eigen::Vector3d pose_error = Kp_ * (position_d_ - pose.translation());
+
+    const auto& z_eef = pose.matrix().block<3, 1>(0, 2);
+    Eigen::Vector3d orient_error = Ko_ * z_eef.cross(z_align_);
+    std::cout << z_align_.x() << " " << z_align_.y() << " " << z_align_.z() << std::endl;
+
     Eigen::Matrix<double, 6, 1> error(6);
     error << pose_error, orient_error;
 
@@ -152,16 +160,17 @@ void TaskPriorityController::stopping(const ros::Time& /*time*/) {
   // BUILT-IN STOPPING BEHAVIOR SLOW DOWN THE ROBOT.
 }
 
+void TaskPriorityController::posvelParamCallback(za_controllers::taskpriority_paramConfig& config,
+                                                    uint32_t /*level*/) {
+    Kp_ = config.translation_gain;
+    Ko_ = config.rotation_gain;
+}
+
 void TaskPriorityController::commandCallback(
         const za_msgs::PosVelSetpointPtr& msg) {
     std::lock_guard<std::mutex> twist_setpoint_mutex_lock(pose_twist_setpoint_mutex_);
 
     position_d_ << msg->pose.position.x, msg->pose.position.y, msg->pose.position.z;
-
-    orientation_d_.coeffs() << msg->pose.orientation.w,
-                               msg->pose.orientation.x,
-                               msg->pose.orientation.y,
-                               msg->pose.orientation.z;
 
     twist_setpoint_ << msg->twist.twist.linear.x,  msg->twist.twist.linear.y, msg->twist.twist.linear.z,
                        msg->twist.twist.angular.x, msg->twist.twist.angular.y, msg->twist.twist.angular.z;

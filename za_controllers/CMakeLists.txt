@@ -25,6 +25,7 @@ find_package(Eigen3 REQUIRED)
 
 generate_dynamic_reconfigure_options(
   cfg/posvel_param.cfg
+  cfg/taskpriority_param.cfg
 )
 
 catkin_package(
