@@ -3,7 +3,6 @@
 #include <mutex>
 
 #include <controller_interface/multi_interface_controller.h>
-#include <dynamic_reconfigure/server.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <control_toolbox/pid.h>
 #include <za_hw/za_state_interface.h>
@@ -12,11 +11,9 @@
 #include <za_msgs/PosVelSetpoint.h>
 #include <Eigen/Dense>
 
-#include <za_controllers/posvel_paramConfig.h>
-
 namespace za_controllers {
 
-class CartesianPosVelController : public controller_interface::MultiInterfaceController<
+class TaskPriorityController : public controller_interface::MultiInterfaceController<
                                            hardware_interface::VelocityJointInterface,
                                            za_hw::ZaModelInterface,
                                            za_hw::ZaStateInterface> {
@@ -38,13 +35,7 @@ private:
     Eigen::Matrix<double, 6, 1> twist_setpoint_;
     std::mutex pose_twist_setpoint_mutex_;
 
-    // Dynamic reconfigure
-    std::unique_ptr<dynamic_reconfigure::Server<za_controllers::posvel_paramConfig>>
-        dynamic_server_posvel_param_;
-    ros::NodeHandle dynamic_reconfigure_posvel_param_node_;
-    double Kp_, Ko_;
-    void posvelParamCallback(za_controllers::posvel_paramConfig& config,
-                             uint32_t level);
+    double Kp, Ko;
 
     ros::Subscriber sub_command_;
     void commandCallback(const za_msgs::PosVelSetpointPtr& msg);

@@ -1,6 +1,7 @@
 arm_id: $(arg arm_id)
 singularity_warning_threshold:    0.0001
 tau_ext_lowpass_filter:           1.0     
+end_effector: za_typhoon_extruder_tcp
 
 # Motion generators PID gains
 motion_generators:
@@ -14,9 +15,9 @@ motion_generators:
       $(arg arm_id)_joint_6: { p: 50, d: 0.1, i: 0 }
   velocity:
     gains:
-      $(arg arm_id)_joint_1: { p: 150, d: 0, i: 0 }
-      $(arg arm_id)_joint_2: { p: 150, d: 0, i: 0 }
-      $(arg arm_id)_joint_3: { p: 100, d: 0, i: 0 }
+      $(arg arm_id)_joint_1: { p: 200, d: 0, i: 0 }
+      $(arg arm_id)_joint_2: { p: 200, d: 0, i: 0 }
+      $(arg arm_id)_joint_3: { p: 150, d: 0, i: 0 }
       $(arg arm_id)_joint_4: { p: 30,  d: 0, i: 0 }
-      $(arg arm_id)_joint_5: { p: 10,  d: 0, i: 0 }
-      $(arg arm_id)_joint_6: { p: 0.2, d: 0, i: 0 }
+      $(arg arm_id)_joint_5: { p: 15,  d: 0, i: 0 }
+      $(arg arm_id)_joint_6: { p: 0.5, d: 0, i: 0 }

@@ -49,7 +49,20 @@ cartesian_velocity_controller:
 cartesian_posvel_controller:
   type: za_controllers/CartesianPosVelController
   Kp: 10
-  Ko: 1
+  Ko: 10
+  arm_id: $(arg arm_id)
+  joints:
+    - $(arg arm_id)_joint_1
+    - $(arg arm_id)_joint_2
+    - $(arg arm_id)_joint_3
+    - $(arg arm_id)_joint_4
+    - $(arg arm_id)_joint_5
+    - $(arg arm_id)_joint_6
+
+task_priority_controller:
+  type: za_controllers/TaskPriorityController
+  Kp: 10
+  Ko: 10
   arm_id: $(arg arm_id)
   joints:
     - $(arg arm_id)_joint_1

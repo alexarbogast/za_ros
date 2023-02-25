@@ -24,7 +24,6 @@ int ModelKDL::segment(za::Frame frame) {
     case za::Frame::kJoint5:      return 4;
     case za::Frame::kJoint6:      return 5;
     case za::Frame::kFlange:      return 6;
-    case za::Frame::kEndEffector: return 7;
     default: return -1;
   }
   // clang-format on
@@ -77,6 +76,18 @@ ModelKDL::ModelKDL(const urdf::Model& model,
                                 "' to tip '" + tip + "'. Do these links exist?");
   }
 
+  for (auto& seg : this->chain_.segments) {
+    std::cout << seg.getName() << std::endl;
+  }
+
+  //std::cout << this->chain_.getSegment(segment(za::Frame::kEndEffector)).getName() << std::endl;
+  //std::cout << this->chain_.getSegment(segment(za::Frame::kFlange)).getName() << std::endl;
+  //std::cout << this->chain_.getSegment(segment(za::Frame::kJoint6)).getName() << std::endl;
+  //std::cout << this->chain_.getSegment(segment(za::Frame::kJoint5)).getName() << std::endl;
+  //std::cout << this->chain_.getSegment(segment(za::Frame::kJoint4)).getName() << std::endl;
+  //std::cout << this->chain_.getSegment(segment(za::Frame::kJoint3)).getName() << std::endl;
+  
+
   ROS_INFO_STREAM("KDL Model initialized for chain from '" << root << "' -> '" << tip << "'");
 }
 
@@ -113,14 +124,16 @@ std::array<double, 16> ModelKDL::pose(
   KDL::Frame kp;
 
   // Agument the chain with the two new Frames 'EE' and 'K'
-  KDL::Chain chain = this->chain_;  // copy
-  augmentFrame("EE", F_T_EE, chain);
+  //KDL::Chain chain = this->chain_;  // copy
+  //augmentFrame("EE", F_T_EE, chain);
 
-  KDL::ChainFkSolverPos_recursive solver(chain);
+  KDL::ChainFkSolverPos_recursive solver(this->chain_);
 
   kq.data = Eigen::Matrix<double, 6, 1>(q.data());
 
-  int error = solver.JntToCart(kq, kp, segment(frame));
+  int segmentNr = frame == za::Frame::kEndEffector ?
+                           this->chain_.getNrOfSegments() : segment(frame);
+  int error = solver.JntToCart(kq, kp, segmentNr);
   if (error != KDL::SolverI::E_NOERROR) {
     throw std::logic_error("KDL forward kinematics pose calculation failed with error: " +
                            strError(error));
@@ -144,13 +157,14 @@ std::array<double, 36> ModelKDL::bodyJacobian(
   kq.data = Eigen::Matrix<double, 6, 1>(q.data());
 
   // Augment the chain with the two virtual frames 'EE' and 'K'
-  KDL::Chain chain = this->chain_;  // copy
-  augmentFrame("EE", F_T_EE, chain);
+  // KDL::Chain chain = this->chain_;  // copy
+  // augmentFrame("EE", F_T_EE, chain);
 
-  KDL::ChainJntToJacSolver solver(chain);
+  KDL::ChainJntToJacSolver solver(this->chain_);
 
-  int seg = segment(frame);
-  int error = solver.JntToJac(kq, J, seg);
+  int segmentNr = frame == za::Frame::kEndEffector ?
+                           this->chain_.getNrOfSegments() : segment(frame);
+  int error = solver.JntToJac(kq, J, segmentNr);
   if (error != KDL::SolverI::E_NOERROR) {
     throw std::logic_error("KDL zero jacobian calculation failed with error: " + strError(error));
   }
@@ -185,12 +199,14 @@ std::array<double, 36> ModelKDL::zeroJacobian(
   kq.data = Eigen::Matrix<double, 6, 1>(q.data());
 
   // Augment the chain with the two virtual frames 'EE' and 'K'
-  KDL::Chain chain = this->chain_;  // copy
-  augmentFrame("EE", F_T_EE, chain);
+  //KDL::Chain chain = this->chain_;  // copy
+  //augmentFrame("EE", F_T_EE, chain);
 
-  KDL::ChainJntToJacSolver solver(chain);
+  KDL::ChainJntToJacSolver solver(this->chain_);
 
-  int error = solver.JntToJac(kq, J, segment(frame));
+  int segmentNr = frame == za::Frame::kEndEffector ?
+                           this->chain_.getNrOfSegments() : segment(frame);
+  int error = solver.JntToJac(kq, J, segmentNr);
   if (error != KDL::SolverI::E_NOERROR) {
     throw std::logic_error("KDL zero jacobian calculation failed with error: " + strError(error));
   }
@@ -268,23 +284,6 @@ std::array<double, 6> ModelKDL::gravity(
 
   KDL::Chain chain = this->chain_;  // copy
   KDL::ChainDynParam solver(chain, grav);
-
-  ///* ========= TEMPORARY ========== */
-  //std::cout << "Gravity: " << gravity_earth[0] << gravity_earth[1] << gravity_earth[2] << std::endl;
-//
-  //for (auto& seg : chain.segments)
-  //{
-  //  std::cout << "Name: " << seg.getName() << std::endl;
-  //  std::cout << "Joint: " << seg.getJoint().getName() << std::endl;
-//
-  //  auto cog = seg.getInertia().getCOG();
-  //  std::cout <<  "COG:" << cog.data[0] << cog.data[1] << cog.data[2] << std::endl;
-  //  
-  //  std::cout << "Mass: " << seg.getInertia().getMass() << std::endl;
-  //  auto rot = seg.getInertia().getRotationalInertia().data;
-  //  std::cout << "I: " << rot[0] <<" "<< rot[1] <<" "<< rot[2] <<"\n"<< rot[3] <<" "<< rot[4] <<" "<< rot[5]<<"\n" << rot[6] <<" "<< rot[7] <<" "<< rot[8] <<std::endl;
-  //}
-  ///* ============================= */
 
   int error = solver.JntToGravity(kq, kg);
   if (error != KDL::SolverI::E_NOERROR) {

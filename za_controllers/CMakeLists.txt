@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   hardware_interface
   joint_limits_interface
+  message_generation
   pluginlib
   realtime_tools
   roscpp
@@ -21,6 +22,10 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Eigen3 REQUIRED)
+
+generate_dynamic_reconfigure_options(
+  cfg/posvel_param.cfg
+)
 
 catkin_package(
   INCLUDE_DIRS include
@@ -44,6 +49,7 @@ catkin_package(
 add_library(za_controllers
     src/cartesian_velocity_controller.cpp
     src/cartesian_posvel_controller.cpp
+    src/task_priority_controller.cpp
 )
 add_dependencies(za_controllers
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
