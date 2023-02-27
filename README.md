@@ -1,7 +1,11 @@
 # za_ros
 **ROS integration for the Tormach ZA6 robot**
 
-*DISCLAIMER: This is an UNOFFICIAL robot description package. The author is not affliated with Tormach Inc..*
+*DISCLAIMER: This is an UNOFFICIAL robot integration package. The author is not affliated with Tormach Inc..*
+
+<p align="center">
+<img src="https://user-images.githubusercontent.com/46149643/221460204-b7701307-9064-46bb-81d1-437f7d06e125.png" width=50% height=50%>
+</p>
 
 ## Contents
 
