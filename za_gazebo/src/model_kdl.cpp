@@ -222,6 +222,33 @@ std::array<double, 36> ModelKDL::zeroJacobian(
   return result;
 }
 
+std::array<double, 216> ModelKDL::zeroHessian(
+      za::Frame frame,
+      const std::array<double, 6>& q,
+      const std::array<double, 16>& F_T_EE)  // NOLINT(readability-identifier-naming)
+      const {
+
+    std::array<double, 36> jacobian_array = zeroJacobian(frame, q, F_T_EE);
+    const Eigen::Map<Eigen::Matrix<double, 6, 6>> J(jacobian_array.data());
+
+    Eigen::Matrix<double, 36, 6> H;
+    H.setZero();
+    for (int j = 0; j < 6; j++) {
+        for (int i = j; i < 6; i++) {
+            H.block<3, 1>(j * 6, i) = J.block<3, 1>(3, j).cross(J.block<3, 1>(0, i));
+            H.block<3, 1>(j * 6 + 3, i) = J.block<3, 1>(3, j).cross(J.block<3, 1>(3, i));
+
+            if (i != j) {
+                H.block<3, 1>(i * 6, j) = H.block<3, 1>(j * 6, i);
+            }
+        }
+    }
+
+    std::array<double, 216> result;
+    Eigen::MatrixXd::Map(&result[0], 36, 6) = H;
+    return result;
+}
+
 std::array<double, 36> ModelKDL::mass(
     const std::array<double, 6>& q,
     const std::array<double, 9>& I_total,  // NOLINT(readability-identifier-naming)

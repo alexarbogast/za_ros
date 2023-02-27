@@ -41,8 +41,8 @@ private:
     std::unique_ptr<dynamic_reconfigure::Server<za_controllers::taskpriority_paramConfig>>
         dynamic_server_posvel_param_;
     ros::NodeHandle dynamic_reconfigure_posvel_param_node_;
-    double Kp_, Ko_;
-    void posvelParamCallback(za_controllers::taskpriority_paramConfig& config,
+    double Kp_, Ko_, Kr_;
+    void taskpriorityParamCallback(za_controllers::taskpriority_paramConfig& config,
                              uint32_t level);
 
     ros::Subscriber sub_command_;

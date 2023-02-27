@@ -20,8 +20,10 @@ bool TaskPriorityController::init(hardware_interface::RobotHW* robot_hw,
         return false;
     }
 
-    if (not node_handle.getParam("Kp", Kp_) or not node_handle.getParam("Ko", Ko_)) {
-        ROS_ERROR("Missing controller gains 'Kp' or 'Ko");
+    if (not node_handle.getParam("Kp", Kp_) or 
+        not node_handle.getParam("Ko", Ko_) or
+        not node_handle.getParam("Kr", Kr_)) {
+        ROS_ERROR("Missing controller gains 'Kp' or 'Ko' or 'Kr'");
         return false;
     }
 
@@ -105,6 +107,16 @@ bool TaskPriorityController::init(hardware_interface::RobotHW* robot_hw,
         return false;
     }
 
+    dynamic_reconfigure_posvel_param_node_ =
+        ros::NodeHandle(node_handle.getNamespace() + "/dynamic_reconfigure_taskpriority_param_node");
+    
+    dynamic_server_posvel_param_ = std::make_unique<
+        dynamic_reconfigure::Server<za_controllers::taskpriority_paramConfig>>(
+            dynamic_reconfigure_posvel_param_node_);
+    
+    dynamic_server_posvel_param_->setCallback(
+        boost::bind(&TaskPriorityController::taskpriorityParamCallback, this, _1, _2));
+
     position_d_.setZero();
     twist_setpoint_.setZero();
     return true;
@@ -128,12 +140,11 @@ void TaskPriorityController::update(const ros::Time& /*time*/, const ros::Durati
     Eigen::MatrixXd jacobian_pinv;
     za_controllers::pseudoInverse(jacobian, jacobian_pinv, false);
 
-    // task tracking
+    /* ========= task tracking ========= */ 
     Eigen::Vector3d pose_error = Kp_ * (position_d_ - pose.translation());
 
     const auto& z_eef = pose.matrix().block<3, 1>(0, 2);
     Eigen::Vector3d orient_error = Ko_ * z_eef.cross(z_align_);
-    std::cout << z_align_.x() << " " << z_align_.y() << " " << z_align_.z() << std::endl;
 
     Eigen::Matrix<double, 6, 1> error(6);
     error << pose_error, orient_error;
@@ -141,14 +152,39 @@ void TaskPriorityController::update(const ros::Time& /*time*/, const ros::Durati
     Eigen::Matrix<double, 6, 1> dp_d(this->twist_setpoint_);
     dp_d += error;
 
-    Eigen::Matrix<double, 6, 1> dq_task = jacobian_pinv * dp_d;
-
-    // redundancy resolution
+    /* ====== redundancy resolution ====== */
     Eigen::MatrixXd null_project = Eigen::Matrix<double, 6, 6>::Identity() 
         - jacobian_pinv * jacobian;
-    Eigen::Matrix<double, 6, 1> dq_redundancy = Eigen::Matrix<double, 6, 1>::Zero();
+    Eigen::Matrix<double, 6, 1> dp_redundancy = Eigen::Matrix<double, 6, 1>::Zero();
 
-    auto dq_cmd = dq_task + dq_redundancy;
+    std::array<double, 216> hessian_array =
+        model_handle_->getZeroHessian(za::Frame::kEndEffector);
+    Eigen::Map<Eigen::Matrix<double, 36, 6>> hessian(hessian_array.data());
+
+    Eigen::Matrix<double, 6, 6> J_Jt = jacobian * jacobian.transpose();
+    double det_J_Jt = J_Jt.determinant();
+    auto inv_J_Jt = J_Jt.inverse();
+
+    Eigen::Matrix<double, 36, 1> vec_inv_J_Jt;
+    Eigen::MatrixXd::Map(&vec_inv_J_Jt[0], 6, 6) = inv_J_Jt;
+    
+    // find manipulability Jacobian
+    Eigen::Matrix<double, 6, 1> Jm;
+    Jm.setZero();
+    for (int i = 0; i < 6; i++) {
+        const auto& Hi = hessian.block<6, 6>(i * 6, 0);
+        Eigen::Matrix<double, 36, 1> vec_J_HiT;
+        Eigen::MatrixXd::Map(&vec_J_HiT[0], 6, 6) = jacobian * Hi.transpose();
+
+        Jm(i, 0) = sqrt(abs(det_J_Jt)) * vec_J_HiT.dot(vec_inv_J_Jt);
+    }
+
+    // use redundant axis (z-rotation) to drive the posture to maximum manipulability
+    dp_redundancy = -Kr_ * jacobian * Jm;
+    dp_redundancy.block<5, 1>(0, 0).setZero();
+
+    Eigen::Matrix<double, 6, 1> dq_cmd = (jacobian_pinv * (dp_d + dp_redundancy));
+
     for (size_t i = 0; i < 6; ++i) {
         joint_handles_[i].setCommand(dq_cmd(i));
     }
@@ -160,10 +196,11 @@ void TaskPriorityController::stopping(const ros::Time& /*time*/) {
   // BUILT-IN STOPPING BEHAVIOR SLOW DOWN THE ROBOT.
 }
 
-void TaskPriorityController::posvelParamCallback(za_controllers::taskpriority_paramConfig& config,
+void TaskPriorityController::taskpriorityParamCallback(za_controllers::taskpriority_paramConfig& config,
                                                     uint32_t /*level*/) {
     Kp_ = config.translation_gain;
     Ko_ = config.rotation_gain;
+    Kr_ = config.redundancy_gain;
 }
 
 void TaskPriorityController::commandCallback(

@@ -261,6 +261,18 @@ class ZaModelHandle {
     return model_->zeroJacobian(frame, q, F_T_EE);
   }
 
+  std::array<double, 216> getZeroHessian(za::Frame frame) const {
+    return model_->zeroHessian(frame, *robot_state_);
+  }
+
+  std::array<double, 216> getZeroHessian(
+      za::Frame frame,
+      const std::array<double, 6>& q,
+      const std::array<double, 16>& F_T_EE)  // NOLINT(readability-identifier-naming)
+      const {
+    return model_->zeroHessian(frame, q, F_T_EE);
+  }
+
  private:
   std::string name_;
   const za_hw::ModelBase* model_;

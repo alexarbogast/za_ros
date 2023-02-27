@@ -44,7 +44,6 @@ class ModelKDL : public za_hw::ModelBase {
    * @param[in] frame The desired frame.
    * @param[in] q Joint position.
    * @param[in] F_T_EE End effector in flange frame.
-   * @param[in] EE_T_K Stiffness frame K in the end effector frame.
    *
    * @return Vectorized 4x4 pose matrix, column-major.
    */
@@ -62,7 +61,6 @@ class ModelKDL : public za_hw::ModelBase {
    * @param[in] frame The desired frame.
    * @param[in] q Joint position.
    * @param[in] F_T_EE End effector in flange frame.
-   * @param[in] EE_T_K Stiffness frame K in the end effector frame.
    *
    * @return Vectorized 6x7 Jacobian, column-major.
    *
@@ -82,11 +80,29 @@ class ModelKDL : public za_hw::ModelBase {
    * @param[in] frame The desired frame.
    * @param[in] q Joint position.
    * @param[in] F_T_EE End effector in flange frame.
-   * @param[in] EE_T_K Stiffness frame K in the end effector frame.
    *
    * @return Vectorized 6x7 Jacobian, column-major.
    */
   std::array<double, 36> zeroJacobian(
+      za::Frame frame,
+      const std::array<double, 6>& q,
+      const std::array<double, 16>& F_T_EE)  // NOLINT(readability-identifier-naming)
+      const override;
+
+  /**
+   * Gets the 6x6x6 Hessian for the given joint relative
+   * to the base frame.
+   *
+   * The Hessian is represented as a 6x6x6 matrix in column-major format.
+   *
+   * @param[in] frame The desired frame.
+   * @param[in] q Joint position.
+   * @param[in] F_T_EE End effector in flange frame.
+   * @param[in] EE_T_K Stiffness frame K in the end effector frame.
+   *
+   * @return Vectorized 6x6x6 Hessian, column-major.
+   */
+  std::array<double, 216> zeroHessian(
       za::Frame frame,
       const std::array<double, 6>& q,
       const std::array<double, 16>& F_T_EE)  // NOLINT(readability-identifier-naming)
@@ -185,6 +201,7 @@ class ModelKDL : public za_hw::ModelBase {
                            KDL::Chain& chain);
 
  private:
+
   static int segment(za::Frame frame);
   static std::string strError(const int error);
   bool isCloseToSingularity(const KDL::Jacobian& jacobian) const;

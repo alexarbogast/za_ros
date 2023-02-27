@@ -86,6 +86,7 @@ task_priority_controller:
   type: za_controllers/TaskPriorityController
   Kp: 10
   Ko: 30
+  Kr: 100
   z_align: [0, 0, 1]
   arm_id: $(arg arm_id)
   joints:
@@ -95,8 +96,6 @@ task_priority_controller:
     - $(arg arm_id)_joint_4
     - $(arg arm_id)_joint_5
     - $(arg arm_id)_joint_6
-
-
 
 joint_velocity_controller:
   type: velocity_controllers/JointGroupVelocityController

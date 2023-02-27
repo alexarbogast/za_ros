@@ -137,6 +137,31 @@ public:
       const = 0;
 
   /**
+   * Gets the 6x6x6 of Hessian at for the given joint relative
+   * to the base frame.
+   *
+   * The Hessian is represented as a 6x6x6 matrix in column-major format given
+   * as a 36x6 matrix.
+   *
+   * @param[in] frame The desired frame.
+   * @param[in] q Joint position.
+   * @param[in] F_T_EE End effector in flange frame.
+   * @param[in] EE_T_K Stiffness frame K in the end effector frame.
+   *
+   * @return Vectorized 6x6 Jacobian, column-major.
+   */
+  virtual std::array<double, 216> zeroHessian(
+      za::Frame frame,
+      const std::array<double, 6>& q,
+      const std::array<double, 16>& F_T_EE)  // NOLINT(readability-identifier-naming)
+      const = 0;
+
+  virtual std::array<double, 216> zeroHessian(za::Frame frame,
+                                  const za::RobotState& robot_state) const {
+    return zeroHessian(frame, robot_state.q, robot_state.F_T_EE);
+  }
+
+  /**
    * Calculates the 6x6 mass matrix. Unit: \f$[kg \times m^2]\f$.
    *
    * @param[in] robot_state State from which the pose should be calculated.
