@@ -209,8 +209,8 @@ void TaskPriorityController::commandCallback(
 
     position_d_ << msg->pose.position.x, msg->pose.position.y, msg->pose.position.z;
 
-    twist_setpoint_ << msg->twist.twist.linear.x,  msg->twist.twist.linear.y, msg->twist.twist.linear.z,
-                       msg->twist.twist.angular.x, msg->twist.twist.angular.y, msg->twist.twist.angular.z;
+    twist_setpoint_ << msg->twist.linear.x,  msg->twist.linear.y, msg->twist.linear.z,
+                       msg->twist.angular.x, msg->twist.angular.y, msg->twist.angular.z;
 }
 
 } // namespace za_controllers

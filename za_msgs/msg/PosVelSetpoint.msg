@@ -1,2 +1,2 @@
 geometry_msgs/Pose pose
-geometry_msgs/TwistStamped twist
+geometry_msgs/Twist twist
