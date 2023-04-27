@@ -4,14 +4,18 @@
 
 namespace robot_hw {
 
-TriggerRate::TriggerRate(double rate) : period_(1.0 / rate), time_stamp_(ros::Time::now()) {}
+TriggerRate::TriggerRate(double rate) : period_(1.0 / rate) 
+{
+    this->clock_ = rclcpp::Clock::make_shared();
+    this->time_stamp_ = this->clock_->now();
+}
 
 bool TriggerRate::operator()() {
-  if ((ros::Time::now() - time_stamp_).toSec() > period_) {
-    time_stamp_ = ros::Time::now();
-    return true;
-  }
-  return false;
+    if ((this->clock_->now() - time_stamp_).seconds() > period_) {
+        time_stamp_ = this->clock_->now();
+        return true;
+    }
+    return false;
 }
 
 }  // namespace robot_hw
