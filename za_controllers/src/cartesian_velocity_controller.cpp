@@ -122,10 +122,10 @@ void CartesianVelocityController::stopping(const ros::Time& /*time*/) {
 }
 
 void CartesianVelocityController::commandCallback(
-        const geometry_msgs::TwistStampedConstPtr& msg) {
+        const geometry_msgs::TwistConstPtr& msg) {
     std::lock_guard<std::mutex> twist_setpoint_mutex_lock(twist_setpoint_mutex_);
-    twist_setpoint_ << msg->twist.linear.x, msg->twist.linear.y, msg->twist.linear.z,
-                       msg->twist.angular.x, msg->twist.angular.y, msg->twist.angular.z;
+    twist_setpoint_ << msg->linear.x, msg->linear.y, msg->linear.z,
+                       msg->angular.x, msg->angular.y, msg->angular.z;
 }
 
 } // namespace za_controllers

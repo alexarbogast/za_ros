@@ -83,3 +83,9 @@ install(DIRECTORY config
 install(FILES za_controllers_plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
+catkin_install_python(
+  PROGRAMS test/cartesian_posvel_controller_test.py
+           test/cartesian_velocity_controller_test.py
+           test/task_priority_controller_test.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
