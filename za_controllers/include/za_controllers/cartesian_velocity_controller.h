@@ -7,7 +7,7 @@
 #include <za_hw/za_state_interface.h>
 #include <za_hw/za_model_interface.h>
 #include <ros/node_handle.h>
-#include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/Twist.h>
 #include <Eigen/Core>
 
 namespace za_controllers {
@@ -33,7 +33,7 @@ private:
     std::mutex twist_setpoint_mutex_;
 
     ros::Subscriber sub_command_;
-    void commandCallback(const geometry_msgs::TwistStampedConstPtr& msg);
+    void commandCallback(const geometry_msgs::TwistConstPtr& msg);
 };
 
 } // namespace za_controllers

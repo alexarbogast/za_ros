@@ -40,8 +40,8 @@ def createCommand(position, orientation, velocity):
     return command
 
 def main():
-    pub = rospy.Publisher('cartesian_posvel_controller/command', PosVelSetpoint, queue_size=1)
-    rospy.init_node('cartesian_posvel_controlller_test', anonymous=False)
+    pub = rospy.Publisher('task_priority_controller/command', PosVelSetpoint, queue_size=1)
+    rospy.init_node('task_priority_controlller_test', anonymous=False)
     state = rospy.wait_for_message('za_state_controller/za_states', ZaState, 10)
     initial_tranformation = np.array(state.O_T_EE).reshape(4, 4).T
     orient = quaternion.from_rotation_matrix(initial_tranformation[:3, :3])

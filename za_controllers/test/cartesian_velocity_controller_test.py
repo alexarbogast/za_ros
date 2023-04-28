@@ -1,7 +1,7 @@
 import rospy
 import numpy as np
 import quaternion
-from za_msgs.msg import PosVelSetpoint
+from geometry_msgs.msg import Twist
 from za_msgs.msg import ZaState
 
 PERIOD = 5 # sec
@@ -24,30 +24,22 @@ class CircleTrajectory:
         return position, velocity
     
 def createCommand(position, orientation, velocity):
-    command = PosVelSetpoint()
-    command.pose.position.x = position[0]
-    command.pose.position.y = position[1]
-    command.pose.position.z = position[2]
+    command = Twist()
 
-    command.pose.orientation.w = 1
-    command.pose.orientation.x = 0
-    command.pose.orientation.y = 0
-    command.pose.orientation.z = 0
-
-    command.twist.linear.x = velocity[0]
-    command.twist.linear.y = velocity[1]
-    command.twist.linear.z = velocity[2]
+    command.linear.x = velocity[0]
+    command.linear.y = velocity[1]
+    command.linear.z = velocity[2]
     return command
 
 def main():
-    pub = rospy.Publisher('cartesian_posvel_controller/command', PosVelSetpoint, queue_size=1)
-    rospy.init_node('cartesian_posvel_controlller_test', anonymous=False)
+    pub = rospy.Publisher('cartesian_velocity_controller/command', Twist, queue_size=1)
+    rospy.init_node('cartesian_velocity_controlller_test', anonymous=False)
     state = rospy.wait_for_message('za_state_controller/za_states', ZaState, 10)
     initial_tranformation = np.array(state.O_T_EE).reshape(4, 4).T
     orient = quaternion.from_rotation_matrix(initial_tranformation[:3, :3])
 
     # time parameterize a circle
-    traj = CircleTrajectory(0.05, initial_tranformation[:3, 3])
+    traj = CircleTrajectory(0.03, initial_tranformation[:3, 3])
 
     ti = rospy.Time.now()
     rate = rospy.Rate(250) # 250 Hz
