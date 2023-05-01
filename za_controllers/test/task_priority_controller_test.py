@@ -47,7 +47,7 @@ def main():
     orient = quaternion.from_rotation_matrix(initial_tranformation[:3, :3])
 
     # time parameterize a circle
-    traj = CircleTrajectory(0.05, initial_tranformation[:3, 3])
+    traj = CircleTrajectory(0.1, initial_tranformation[:3, 3])
 
     ti = rospy.Time.now()
     rate = rospy.Rate(250) # 250 Hz

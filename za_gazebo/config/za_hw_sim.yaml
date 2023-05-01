@@ -20,4 +20,4 @@ motion_generators:
       $(arg arm_id)_joint_3: { p: 150, d: 0, i: 0 }
       $(arg arm_id)_joint_4: { p: 30,  d: 0, i: 0 }
       $(arg arm_id)_joint_5: { p: 15,  d: 0, i: 0 }
-      $(arg arm_id)_joint_6: { p: 0.5, d: 0, i: 0 }
+      $(arg arm_id)_joint_6: { p: 0.2, d: 0, i: 0 }

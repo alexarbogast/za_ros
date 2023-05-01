@@ -84,9 +84,9 @@ cartesian_posvel_controller:
 
 task_priority_controller:
   type: za_controllers/TaskPriorityController
-  Kp: 10
+  Kp: 100
   Ko: 30
-  Kr: 100
+  Kr: 500
   z_align: [0, 0, 1]
   arm_id: $(arg arm_id)
   joints:
