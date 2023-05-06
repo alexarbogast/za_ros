@@ -2,10 +2,11 @@ cmake_minimum_required(VERSION 3.4)
 project(za_controllers)
 
 set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(catkin REQUIRED COMPONENTS
+  cartesian_trajectory_adapter
   controller_interface
   dynamic_reconfigure
   eigen_conversions
@@ -26,12 +27,14 @@ find_package(Eigen3 REQUIRED)
 generate_dynamic_reconfigure_options(
   cfg/posvel_param.cfg
   cfg/taskpriority_param.cfg
+  cfg/cartesian_trajectory_param.cfg
 )
 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES za_controllers
   CATKIN_DEPENDS
+  cartesian_trajectory_adapter
   controller_interface
   dynamic_reconfigure
   eigen_conversions
@@ -51,6 +54,7 @@ add_library(za_controllers
     src/cartesian_velocity_controller.cpp
     src/cartesian_posvel_controller.cpp
     src/task_priority_controller.cpp
+    src/cartesian_trajectory_controller.cpp
 )
 add_dependencies(za_controllers
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
@@ -87,5 +91,6 @@ catkin_install_python(
   PROGRAMS test/cartesian_posvel_controller_test.py
            test/cartesian_velocity_controller_test.py
            test/task_priority_controller_test.py
+           test/cartesian_trajectory_controller_test.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

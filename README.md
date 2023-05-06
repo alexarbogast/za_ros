@@ -16,6 +16,8 @@
 
 ## Installation
 
+Za_ros depends on the [cartesian_controllers](https://github.com/alexarbogast/cartesian_controllers) package for trajectory generation in some of the controllers. Follow the instructions at [cartesian_controllers](https://github.com/alexarbogast/cartesian_controllers) to install the package.
+
 Clone the repository to your local workspace. If you do not already have the 
 [za_description](https://github.com/alexarbogast/za_description/tree/e57f65c3f8eb0be88e7739a8b5162b4b3b875b15) package, you will need to clone recursively. 
 
