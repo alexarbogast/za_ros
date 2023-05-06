@@ -9,14 +9,19 @@
       A controller that executes a short motion based on cartesian velocities and position
     </description>
   </class>
+  <class name="za_controllers/TaskPriorityController" type="za_controllers::TaskPriorityController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      A controller that executes a short motion based on task priority control
+    </description>
+  </class>
   <class name="za_controllers/CartesianTrajectoryController" type="za_controllers::CartesianTrajectoryController" base_class_type="controller_interface::ControllerBase">
     <description>
       A controller that executes cartesian trajectories using a trajectory adapter
     </description>
   </class>
-  <class name="za_controllers/TaskPriorityController" type="za_controllers::TaskPriorityController" base_class_type="controller_interface::ControllerBase">
+  <class name="za_controllers/TaskPriorityTrajectoryController" type="za_controllers::TaskPriorityTrajectoryController" base_class_type="controller_interface::ControllerBase">
     <description>
-      A controller that executes a short motion based on task priority control
+      A controller that executes cartesian trajectories using a trajectory adapter and task priority control
     </description>
   </class>
 </library>

@@ -55,6 +55,7 @@ add_library(za_controllers
     src/cartesian_posvel_controller.cpp
     src/task_priority_controller.cpp
     src/cartesian_trajectory_controller.cpp
+    src/task_priority_trajectory_controller.cpp
 )
 add_dependencies(za_controllers
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
@@ -92,5 +93,6 @@ catkin_install_python(
            test/cartesian_velocity_controller_test.py
            test/task_priority_controller_test.py
            test/cartesian_trajectory_controller_test.py
+           test/task_priority_trajectory_controller_test.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

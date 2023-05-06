@@ -39,6 +39,19 @@ def all_edges(center, width):
 
     return path
 
+def manipulability_example():
+    x = 0.9
+    y = 0.9
+    z = 0.6
+
+    floor_offset = 0.5
+    center = np.array([0, 0, z / 2 + floor_offset])
+
+    flu, fru, frd, fld, bld, blu, bru, brd = make_rectangle(center, x, y, z)
+    path = [blu, flu, fld, bld, blu, bru, brd, frd, fru, bru, brd, bld]
+
+    return path
+
 def set_pose(position, orientation, point: CartesianTrajectoryPoint):
     point.pose.position.x = position[0]
     point.pose.position.y = position[1]
@@ -49,11 +62,11 @@ def set_pose(position, orientation, point: CartesianTrajectoryPoint):
     point.pose.orientation.z = orientation[3]
 
 
-class CartesianTrajectoryControllerTest(unittest.TestCase):
+class TaskPriorityTrajectoryControllerTest(unittest.TestCase):
     def setUp(self):
-        rospy.init_node('cartesian_trajectory_controller_test')
+        rospy.init_node('task_priority_trajectory_controller_test')
 
-        self.client = actionlib.SimpleActionClient('/cartesian_trajectory_controller/'
+        self.client = actionlib.SimpleActionClient('/task_priority_trajectory_controller/'
                                                    'follow_cartesian_trajectory',
                                                     TrajectoryExecutionAction)
         self.client.wait_for_server()
@@ -90,7 +103,31 @@ class CartesianTrajectoryControllerTest(unittest.TestCase):
         self.client.send_goal(goal)
         self.client.wait_for_result()
 
+    #@unittest.skip("skipping test_large_cube")
+    def test_large_cube(self):
+        traj = CartesianTrajectory()
+
+        start_pose = CartesianTrajectoryPoint()
+        set_pose(self.start, self.orient, start_pose)
+        traj.points.append(start_pose)
+
+        path = manipulability_example()
+        for segment in path:
+            pose = CartesianTrajectoryPoint()
+            set_pose(segment, self.orient, pose)
+            traj.points.append(pose)
+        traj.points.append(start_pose)
+
+        goal = TrajectoryExecutionGoal()
+        goal.trajectory = traj
+        goal.limits.v_max = self.v_max
+        goal.limits.a_max = self.a_max
+        goal.limits.j_max = self.j_max
+
+        self.client.send_goal(goal)
+        self.client.wait_for_result()
+
 
 if __name__ == "__main__":
     import rostest
-    rostest.rosrun("za_controller", "cartesian_controller_test", CartesianTrajectoryControllerTest)
+    rostest.rosrun("za_controllers", "task_priority_trajectory_controller_test", TaskPriorityTrajectoryControllerTest)
