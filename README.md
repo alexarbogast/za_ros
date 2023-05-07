@@ -46,6 +46,26 @@ If you would like to launch a controller with the robot, the *controller* parame
 ```shell script
 roslaunch za_gazebo za_robot.launch controller:=CONTROLLER_NAME
 ```
-A few controller have been implemented in za_controllers. The available controllers can be found in [sim_controllers.yaml](za_gazebo/config/sim_controllers.yaml). More information about the available controllers refer to [za_controller detailed description](za_controllers/README.md).
+A few controller have been implemented in za_controllers.
+- cartesian_velocity_controller
+- cartesian_posvel_controller
+- task_priority_controller
+- cartesian_trajectory_controller 
+- task_priority_trajectory_controller
+
+The available controllers can be found in [sim_controllers.yaml](za_gazebo/config/sim_controllers.yaml). More information about the available controllers refer to [za_controller detailed description](za_controllers/README.md).
 
 To actually execute a trajectory, you will need a node that feeds the controllers a setpoint. An example for executing linear trajectories with 4th order smoothing is provided at [kintrol](https://github.com/alexarbogast/kintrol.git). The kintrol package implements an online trajectory generator using [ruckig](https://github.com/pantor/ruckig).
+
+### TrajectoryControllers
+
+Run the trajectory controller demos. To use the task priority trajectory controller, for example:
+
+```shell ros
+roslaunch za_gazebo za_robot.launch controller:=task_priority_trajectory_controller
+```
+
+In a new shell (after sourcing *setup.bash*):
+```shell script
+rosrun za_controllers task_priority_trajectory_controller_test.py
+```
