@@ -102,7 +102,7 @@ bool CartesianTrajectoryController::init(hardware_interface::RobotHW* robot_hw,
         boost::bind(&CartesianTrajectoryController::posvelParamCallback, this, _1, _2));
     
     publisher_command_.init(node_handle, "cart_command", 1);
-    TrajectoryAdapter::init(node_handle);
+    TrajectoryAdapter::init(node_handle, &setpoint_);
     return true;
 }
 
@@ -116,8 +116,8 @@ void CartesianTrajectoryController::starting(const ros::Time&) {
 
 void CartesianTrajectoryController::update(const ros::Time& /*time*/, const ros::Duration& period) {
     // ================== trajectory generation ===================
-    if (action_server_->isActive() && !done_.load()) {
-        done_ = gen_->sample(period.toSec(), setpoint_);
+    if (this->isActive() && !this->isDone()) {
+        this->sample(period.toSec(), setpoint_);
     }
 
     // ================== inverse jacobian control ================

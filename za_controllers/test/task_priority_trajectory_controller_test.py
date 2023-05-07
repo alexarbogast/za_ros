@@ -85,7 +85,6 @@ class TaskPriorityTrajectoryControllerTest(unittest.TestCase):
 
         start_pose = CartesianTrajectoryPoint()
         set_pose(self.start, self.orient, start_pose)
-        traj.points.append(start_pose)
 
         path = all_edges(self.start, self.width)
         for segment in path:
@@ -109,7 +108,6 @@ class TaskPriorityTrajectoryControllerTest(unittest.TestCase):
 
         start_pose = CartesianTrajectoryPoint()
         set_pose(self.start, self.orient, start_pose)
-        traj.points.append(start_pose)
 
         path = manipulability_example()
         for segment in path:
