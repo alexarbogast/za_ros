@@ -26,6 +26,7 @@ public:
     void starting(const ros::Time&) override;
     void stopping(const ros::Time&) override;
 
+    void adapterStateCallback(cartesian_controllers::CartesianState& state) const;
 private:   
     std::vector<hardware_interface::JointHandle> joint_handles_;
     std::unique_ptr<za_hw::ZaStateHandle> state_handle_;

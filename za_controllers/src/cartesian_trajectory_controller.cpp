@@ -102,7 +102,8 @@ bool CartesianTrajectoryController::init(hardware_interface::RobotHW* robot_hw,
         boost::bind(&CartesianTrajectoryController::posvelParamCallback, this, _1, _2));
     
     publisher_command_.init(node_handle, "cart_command", 1);
-    TrajectoryAdapter::init(node_handle, &setpoint_);
+    TrajectoryAdapter::init(node_handle,
+        boost::bind(&CartesianTrajectoryController::adapterStateCallback, this, _1));
     return true;
 }
 
@@ -159,6 +160,19 @@ void CartesianTrajectoryController::stopping(const ros::Time& /*time*/) {
   // WARNING: DO NOT SEND ZERO VELOCITIES HERE AS IN CASE OF ABORTING DURING MOTION
   // A JUMP TO ZERO WILL BE COMMANDED PUTTING HIGH LOADS ON THE ROBOT. LET THE DEFAULT
   // BUILT-IN STOPPING BEHAVIOR SLOW DOWN THE ROBOT.
+}
+
+void CartesianTrajectoryController::adapterStateCallback(
+        cartesian_controllers::CartesianState& state) const {
+    za::RobotState current_state = state_handle_->getRobotState();
+    Eigen::Affine3d transformation(Eigen::Matrix4d::Map(current_state.O_T_EE.data()));
+
+    state.p = transformation.translation();
+    state.q = Eigen::Quaterniond(transformation.rotation());
+
+    // use last setpoint velocity as prediction
+    state.v = setpoint_.v;
+    state.w = setpoint_.w;
 }
 
 void CartesianTrajectoryController::posvelParamCallback(za_controllers::cartesian_trajectory_paramConfig& config,
