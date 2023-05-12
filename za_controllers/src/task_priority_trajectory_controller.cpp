@@ -184,7 +184,7 @@ void TaskPriorityTrajectoryController::update(const ros::Time& /*time*/, const r
 
         Jm(i, 0) = sqrt(abs(det_J_Jt)) * vec_J_HiT.dot(vec_inv_J_Jt);
     }
-    dp_redundancy = -Kr_ * Jm;
+    dp_redundancy = Kr_ * Jm;
 
     // project manipulability gradient into nullspace of jacobian
     Eigen::Matrix<double, 5, 6> J_primary = jacobian.block<5, 6>(0, 0);
@@ -193,7 +193,9 @@ void TaskPriorityTrajectoryController::update(const ros::Time& /*time*/, const r
     Eigen::MatrixXd null_project = Eigen::Matrix<double, 6, 6>::Identity() 
         - J_primary_pinv * J_primary;
 
-    Eigen::Matrix<double, 6, 1> dq_cmd = (jacobian_pinv * dp_d) + (null_project * dp_redundancy);
+    Eigen::Matrix<double, 5, 1> dp_primary = dp_d.block<5, 1>(0, 0);
+    Eigen::Matrix<double, 6, 1> dq_cmd = (J_primary_pinv * dp_primary) + 
+                                            (null_project * dp_redundancy);
 
     for (size_t i = 0; i < 6; ++i) {
         joint_handles_[i].setCommand(dq_cmd(i));
