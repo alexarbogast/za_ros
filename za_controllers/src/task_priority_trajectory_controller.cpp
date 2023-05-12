@@ -112,7 +112,7 @@ bool TaskPriorityTrajectoryController::init(hardware_interface::RobotHW* robot_h
     dynamic_server_posvel_param_->setCallback(
         boost::bind(&TaskPriorityTrajectoryController::taskpriorityParamCallback, this, _1, _2));
     
-    publisher_command_.init(node_handle, "cart_command", 1);
+    publisher_command_.init(node_handle, "introspection", 1);
     TrajectoryAdapter::init(node_handle,
         boost::bind(&TaskPriorityTrajectoryController::adapterStateCallback, this, _1));
     return true;
@@ -151,13 +151,16 @@ void TaskPriorityTrajectoryController::update(const ros::Time& /*time*/, const r
     Eigen::Matrix<double, 6, 1> error(6);
     error << Kp_ * pose_error, Ko_ * orient_error;
 
+    // if (publisher_command_.trylock()) {
+    //     publisher_command_.msg_.data = std::vector<double>(pose_error.data(), pose_error.data() + pose_error.size());
+    //     publisher_command_.unlockAndPublish();
+    // }
+
     Eigen::Matrix<double, 6, 1> dp_d;
     dp_d << setpoint_.v, setpoint_.w;
     dp_d += error;
 
     /* redundancy resolution */
-    Eigen::MatrixXd null_project = Eigen::Matrix<double, 6, 6>::Identity() 
-        - jacobian_pinv * jacobian;
     Eigen::Matrix<double, 6, 1> dp_redundancy = Eigen::Matrix<double, 6, 1>::Zero();
 
     std::array<double, 216> hessian_array =
@@ -181,12 +184,16 @@ void TaskPriorityTrajectoryController::update(const ros::Time& /*time*/, const r
 
         Jm(i, 0) = sqrt(abs(det_J_Jt)) * vec_J_HiT.dot(vec_inv_J_Jt);
     }
+    dp_redundancy = -Kr_ * Jm;
 
-    // use redundant axis (z-rotation) to drive the posture to maximum manipulability
-    dp_redundancy = -Kr_ * jacobian * Jm;
-    dp_redundancy.block<5, 1>(0, 0).setZero();
+    // project manipulability gradient into nullspace of jacobian
+    Eigen::Matrix<double, 5, 6> J_primary = jacobian.block<5, 6>(0, 0);
+    Eigen::MatrixXd J_primary_pinv;
+    za_controllers::pseudoInverse(J_primary, J_primary_pinv, false);
+    Eigen::MatrixXd null_project = Eigen::Matrix<double, 6, 6>::Identity() 
+        - J_primary_pinv * J_primary;
 
-    Eigen::Matrix<double, 6, 1> dq_cmd = (jacobian_pinv * (dp_d + dp_redundancy));
+    Eigen::Matrix<double, 6, 1> dq_cmd = (jacobian_pinv * dp_d) + (null_project * dp_redundancy);
 
     for (size_t i = 0; i < 6; ++i) {
         joint_handles_[i].setCommand(dq_cmd(i));

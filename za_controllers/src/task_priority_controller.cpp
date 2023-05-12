@@ -130,8 +130,8 @@ void TaskPriorityController::starting(const ros::Time&) {
 }
 
 void TaskPriorityController::update(const ros::Time& /*time*/, const ros::Duration& period) {
+    // ================== inverse jacobian control ================
     za::RobotState robot_state = state_handle_->getRobotState();
-    
     Eigen::Affine3d pose(Eigen::Matrix4d::Map(robot_state.O_T_EE.data()));
 
     std::array<double, 36> jacobian_array = 
@@ -140,21 +140,19 @@ void TaskPriorityController::update(const ros::Time& /*time*/, const ros::Durati
     Eigen::MatrixXd jacobian_pinv;
     za_controllers::pseudoInverse(jacobian, jacobian_pinv, false);
 
-    /* ========= task tracking ========= */ 
-    Eigen::Vector3d pose_error = Kp_ * (position_d_ - pose.translation());
+    /* task tracking */ 
+    Eigen::Vector3d pose_error = position_d_ - pose.translation();
 
     const auto& z_eef = pose.matrix().block<3, 1>(0, 2);
-    Eigen::Vector3d orient_error = Ko_ * z_eef.cross(z_align_);
+    Eigen::Vector3d orient_error = z_eef.cross(z_align_);
 
     Eigen::Matrix<double, 6, 1> error(6);
-    error << pose_error, orient_error;
+    error << Kp_ * pose_error, Ko_ * orient_error;
 
     Eigen::Matrix<double, 6, 1> dp_d(this->twist_setpoint_);
     dp_d += error;
 
-    /* ====== redundancy resolution ====== */
-    Eigen::MatrixXd null_project = Eigen::Matrix<double, 6, 6>::Identity() 
-        - jacobian_pinv * jacobian;
+    /* redundancy resolution */
     Eigen::Matrix<double, 6, 1> dp_redundancy = Eigen::Matrix<double, 6, 1>::Zero();
 
     std::array<double, 216> hessian_array =
@@ -178,12 +176,16 @@ void TaskPriorityController::update(const ros::Time& /*time*/, const ros::Durati
 
         Jm(i, 0) = sqrt(abs(det_J_Jt)) * vec_J_HiT.dot(vec_inv_J_Jt);
     }
+    dp_redundancy = -Kr_ * Jm;
 
-    // use redundant axis (z-rotation) to drive the posture to maximum manipulability
-    dp_redundancy = -Kr_ * jacobian * Jm;
-    dp_redundancy.block<5, 1>(0, 0).setZero();
+    // project manipulability gradient into nullspace of jacobian
+    Eigen::Matrix<double, 5, 6> J_primary = jacobian.block<5, 6>(0, 0);
+    Eigen::MatrixXd J_primary_pinv;
+    za_controllers::pseudoInverse(J_primary, J_primary_pinv, false);
+    Eigen::MatrixXd null_project = Eigen::Matrix<double, 6, 6>::Identity() 
+        - J_primary_pinv * J_primary;
 
-    Eigen::Matrix<double, 6, 1> dq_cmd = (jacobian_pinv * (dp_d + dp_redundancy));
+    Eigen::Matrix<double, 6, 1> dq_cmd = (jacobian_pinv * dp_d) + (null_project * dp_redundancy);
 
     for (size_t i = 0; i < 6; ++i) {
         joint_handles_[i].setCommand(dq_cmd(i));

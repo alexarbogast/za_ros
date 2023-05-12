@@ -43,7 +43,7 @@ private:
 
     cartesian_controllers::CartesianState setpoint_;
 
-    // temporary
+    // introspection topics
     realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray> publisher_command_;
 };
 

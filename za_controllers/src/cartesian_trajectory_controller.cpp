@@ -101,7 +101,7 @@ bool CartesianTrajectoryController::init(hardware_interface::RobotHW* robot_hw,
     dynamic_server_posvel_param_->setCallback(
         boost::bind(&CartesianTrajectoryController::posvelParamCallback, this, _1, _2));
     
-    publisher_command_.init(node_handle, "cart_command", 1);
+    publisher_command_.init(node_handle, "introspection", 1);
     TrajectoryAdapter::init(node_handle,
         boost::bind(&CartesianTrajectoryController::adapterStateCallback, this, _1));
     return true;
@@ -123,7 +123,6 @@ void CartesianTrajectoryController::update(const ros::Time& /*time*/, const ros:
 
     // ================== inverse jacobian control ================
     za::RobotState robot_state = state_handle_->getRobotState();
-    
     Eigen::Affine3d pose(Eigen::Matrix4d::Map(robot_state.O_T_EE.data()));
 
     std::array<double, 36> jacobian_array = 
@@ -143,10 +142,10 @@ void CartesianTrajectoryController::update(const ros::Time& /*time*/, const ros:
     dp_d << setpoint_.v, setpoint_.w;
     dp_d += error;
 
-    if (publisher_command_.trylock()) {
-        publisher_command_.msg_.data = std::vector<double>(pose_error.data(), pose_error.data() + pose_error.size());
-        publisher_command_.unlockAndPublish();
-    }
+    // if (publisher_command_.trylock()) {
+    //     publisher_command_.msg_.data = std::vector<double>(pose_error.data(), pose_error.data() + pose_error.size());
+    //     publisher_command_.unlockAndPublish();
+    // }
 
     Eigen::Matrix<double, 6, 1> dq_cmd;
     dq_cmd = jacobian_pinv * dp_d;
