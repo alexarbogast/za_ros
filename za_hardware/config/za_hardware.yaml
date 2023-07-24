@@ -1,0 +1,66 @@
+arm_id: $(arg arm_id)
+
+generic_hw_control_loop:
+  loop_hz: 1000
+  cycle_time_error_threshold: 0.01
+
+hardware_interface:
+  joints:
+    - $(arg arm_id)_joint_1
+    - $(arg arm_id)_joint_2
+    - $(arg arm_id)_joint_3
+    - $(arg arm_id)_joint_4
+    - $(arg arm_id)_joint_5
+    - $(arg arm_id)_joint_6
+  sim_control_mode: 1  # 0: position, 1: velocity
+
+joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: 50
+
+# TEMPORARY 
+# This file augments params in
+# ../../za6_moveit_config/config/ros_controllers.yaml
+#
+# It is loaded in these places:
+# ../../za6_hardware/launch/hal_hardware.launch
+# ../launch/moveit_planning_execution.launch
+# (In the latter, under the `/move_group` namespace)
+
+# position_trajectory_controller:
+#   # For detailed explanations of parameters see
+#   # http://wiki.ros.org/joint_trajectory_controller
+#   type: pos_vel_controllers/InterruptibleJointTrajectoryController
+#   stop_trajectory_duration: 0.02
+#   constraints:
+#     goal_time: 1.0
+#     # 1 deg. in rad. = 0.0174532925199
+#     stopped_velocity_tolerance: 0.005 # Defaults to 0.01
+# 
+#     # NOTE: max acceleration settings should be less than any downstream limits for best results
+#     $(arg arm_id)_joint_1:
+#       # Trajectory position tolerance:  enforce w/in +/- rad. along trajectory
+#       trajectory: 0.05
+#       # Goal position tolerance:  enforce w/in +/- rad. of final goal
+#       goal:       0.017
+#       max_acceleration: 6
+#     $(arg arm_id)_joint_2:
+#       trajectory: 0.05
+#       goal:       0.017
+#       max_acceleration: 10
+#     $(arg arm_id)_joint_3:
+#       trajectory: 0.05
+#       goal:       0.017
+#       max_acceleration: 12
+#     $(arg arm_id)_joint_4:
+#       trajectory: 0.05
+#       goal:       0.017
+#       max_acceleration: 10
+#     $(arg arm_id)_joint_5:
+#       trajectory: 0.05
+#       goal:       0.017
+#       max_acceleration: 12
+#     $(arg arm_id)_joint_6:
+#       trajectory: 0.05
+#       goal:       0.017
+#       max_acceleration: 20

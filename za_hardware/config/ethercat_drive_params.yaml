@@ -1,0 +1,160 @@
+# Specify groups of EtherCAT drives and params to apply to each drive
+#
+# Params are specified in the `ethercat_drive_params/<group>` dict:
+# - Keys are EtherCAT index+subindex
+# - Values may be
+#   - a single scalar (applied to all drives in group)
+#   - a list of scalars with one element for each drive
+
+ethercat_drive_params:
+  # Joint drives:  Inovance IS620N
+  joints:
+    device_description_xml:
+      # - See launch/hal_hardware.launch
+      ros_package:  za_hardware
+      path:  config/IS620N-Ecat_v2.6.7.xml
+
+    # Device schema from XML
+    device_type:  IS620N
+
+    # Ethercat master and positions this configuration applies to
+    master: 0
+    positions: [0, 1, 2, 3, 4, 5]
+
+    # Parameter settings
+    param_values:
+      # *** Servo Motor Parameters ***
+      # Motor SN:
+      # 14101:  Inovance 23-bit absolute encoder
+      2000-01h: 14101
+
+      # *** Servo Drive Parameters ***
+      # Servo drive SN:
+      # 2:  S1R6 0.2kW
+      # 3:  S2R8 0.4kW
+      # 5:  S5R5 0.75kW
+      2001-03h: [5, 5, 3, 2, 2, 2]
+
+      # *** Basic control ***
+      # Absolute system selection:  def. 0
+      # 1:  Absolute position linear mode (encoder retains value on power down)
+      2002-02h: 1
+
+      # *** Output terminal Parameters ***
+      # DO1 function selection:
+      # 9:  BK (Brake output)
+      # - Maybe only Rob's machine?
+      2004-01h: 9
+      # DO2 function selection:
+      # 9:  BK (Brake output)
+      2004-03h: 9
+
+      # *** Position Control Parameters ***
+      # Speed feedforward control selection
+      # 2: Use 60B1h as source of speed feedforward signal in CSP mode
+      2005-14h: 2
+
+      # *** Speed Control Parameters ***
+      # Torque feedforward control selection
+      # 2: Use 60B2h as source of torque feedforward signal in CSP mode
+      2006-0Ch: 2
+
+      # *** Torque Control Parameters ***
+      # Time constant of torque filter
+      2007-06h: 100
+      # Time constant of torque feedforward filter
+      2007-0Ch: 100
+
+      # *** Gain Parameters ***
+      # NB: parameter values are all integers in drives but are decimals
+      # in manual.  Example: speed loop gain of 800 is equal to 80.0 Hz
+      # in the manual.
+      #
+      # Velocity proportional gain *0.1Hz
+      2008-01h: [350, 400, 400, 250, 250, 400]
+      # Velocity time constant *0.01ms
+      2008-02h: [1000, 1000, 1000, 1000, 1000, 1000]
+      # Position proportional gain *0.1Hz
+      2008-03h: [550, 550, 550, 400, 400, 550]
+      # Gain switchover
+      # use 2008-0Ah
+      2008-09h: 1
+      # Gain switchover condition
+      # 0:  Always use first gain
+      # - No difference between gains in motion and gains when positioning
+      2008-0Ah: 0
+      # Inertai ratio
+      # values from qc.py *0.01
+      2008-10h: [45, 318, 216, 281, 141, 38]
+      # Velocity feedforward filter * 0.01ms
+      2008-13h: 100
+      # Speed feedforward gain:  0-1000 (0.1%) def. 0
+      # - Feedforward gain set to minimize following error - max value
+      #   produces best results
+      2008-14h: 1000
+      # Torque feedforward filter * 0.01ms
+      2008-15h: 100
+      # Torque feedforward gain 0-2000 (0.1%) def. 0
+      2008-16h: 1000
+      # Velocity feedback cutoff frequency
+      2008-18h: 4000
+      # PID structure
+      2008-19h: 1000
+
+      # *** Auto-adjusting Parameters ***
+      # Automatic gain tuning mode selection
+      # 0: disabled
+      # 1:  Automatic gain tuning mode, gain parameters tuned automatically
+      #     based on stiffness table
+      # - Use automatic gain tuning so we don't have to worry about
+      #   individual gain settings for now
+      2009-01h: 0
+      # Stiffness level selection 0-31;
+      # higher -> stronger gain and quicker response
+      # 2009-02h: 8
+      2009-02h: [14, 15, 15, 12, 12, 15]
+      # Disable inertia ratio autotune
+      2009-04h: 0
+
+      # *** Error and Protection Parameter ***
+      # Power input phase loss protection
+      # 1:  Enable faults and warnings
+      # - Enable voltage fluctuation alarm faults and warnings
+      200A-01h: 1
+      # Runaway detection
+      200A-0Dh: 0
+
+      # *** Communication ***
+      # Synchronization error threshold:  0-2000 (ns); def. 500
+      # - Manual says 2000 max, but we found 3000 default on some drives!
+      200C-2Dh: 3000
+      # Position control buffer:  0 disabled; 1 enabled
+      200C-2Eh: 0
+
+      # *** Standard Device Profile Parameters ***
+      # Quick stop option code
+      # CSP mode:
+      # 3:  Stop at emergency stop torque in 2007-10h; brake & power off
+      605A-00h: 3
+      # Following error window
+      6065-00h: 2000000
+      # Position window:  (reference units) def. 734
+      # - goal position threshold
+      6067-00h: 5872
+      # Position window time:  0-65535 (ms)
+      # - FIXME - better servo tuning should help us narrow this window
+      6068-00h: 65535
+      # Home offset:  (ref. units) def. 0
+      # - J3 home offset is -90 deg, home arm vertically
+      # FIXME
+      # load_parameters: unable to set parameters (last param was [/tool_scene_sync/tool_attach_link=flange]): int exceeds XML-RPC limits
+      # 607C-00h: [0, 0, 0xf6000001, 0, 0, 0]
+      # 6091h Gear Ratio
+      # Sichen sets gear ratio to 6000, but we set it to 1 and handle it in HAL
+      # Motor revolutions
+      6091-01h: 1
+      # Shaft revolutions
+      6091-02h: 1
+      # Homing method
+      # 35:  Home on current position
+      6098-00h: 35
