@@ -1,0 +1,44 @@
+joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: 50
+
+position_trajectory_controller:
+  type: position_controllers/JointTrajectoryController
+  joints:
+    - $(arg arm_id)_joint_1
+    - $(arg arm_id)_joint_2
+    - $(arg arm_id)_joint_3
+    - $(arg arm_id)_joint_4
+    - $(arg arm_id)_joint_5
+    - $(arg arm_id)_joint_6
+  gains:
+    $(arg arm_id)_joint_1:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    $(arg arm_id)_joint_2:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    $(arg arm_id)_joint_3:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    $(arg arm_id)_joint_4:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    $(arg arm_id)_joint_5:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    $(arg arm_id)_joint_6:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1

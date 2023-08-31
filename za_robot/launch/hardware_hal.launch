@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Robot Customization -->
+  <arg name="arm_id"    default="za"   doc="Name of the robot to launch"/>
+  <arg name="sim"       default="true" doc="If hal hw, should we run in sim mode?"/>
+  
+  <!-- HAL Configuration -->
+  <arg name="hal_debug_output" default="false" doc="Should HAL output debug messages to console?"/>
+  <arg name="hal_debug_level"  default="1"     doc="Set HAL debug level, 0-5"/>
+
+  <param name="sim" value="$(arg sim)"/>
+  <param name="robot_description" command="xacro $(find za_description)/urdf/za.xacro prefix:=$(arg arm_id)_"/>
+
+  <include file="$(find za_hardware)/launch/hal_hardware.launch">
+    <arg name="hal_debug_output" value="$(arg hal_debug_output)"/>
+    <arg name="hal_debug_level" value="$(arg hal_debug_level)"/>
+    <arg name="sim" value="$(arg sim)"/>
+    <arg name="arm_id" value ="$(arg arm_id)"/>
+  </include>
+</launch>
