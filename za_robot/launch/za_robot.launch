@@ -2,7 +2,9 @@
 <launch>
   <!-- Robot Customization -->
   <arg name="arm_id"      default="za"    doc="Name of the robot to launch"/>
-  <arg name="hardware"    default="sim"   doc="One of 'sim', 'hal', or 'hal_sim'"/>
+  <arg name="hardware"    default="sim"   doc="One of 'sim', 'hal'"/>
+  <arg name="sim"         default="true"  doc="Should the hal interface be launched in sim mode? 
+                                               (only applies if hardware == hal)"/>
   <arg name="rviz"        default="false" doc="Should RVIz be launched?"/>
   <arg name="controller"  default="position_trajectory_controller" doc="Which controller should be started?" />
 
@@ -10,21 +12,11 @@
   <arg name="hal_debug_output" default="false" doc="Should HAL output debug messages to console?"/>
   <arg name="hal_debug_level"  default="1"     doc="Set HAL debug level, 0-5"/>
 
+  <!-- Load the robot description -->
+  <param name="robot_description" command="xacro $(find za_description)/urdf/za.xacro prefix:=$(arg arm_id)_"/>
+
   <!-- Launch the appropriate hardware interface -->
-  <group if="$(eval hardware == 'sim')">
-    <include file="$(find za_robot)/launch/hardware_sim.launch" pass_all_args="true">
-    </include>
-  </group>
-  <group if="$(eval hardware == 'hal')">
-    <include file="$(find za_robot)/launch/hardware_hal.launch" pass_all_args="true">
-      <arg name="sim" value="false"/>
-    </include>
-  </group>
-  <group if="$(eval hardware == 'hal_sim')">
-    <include file="$(find za_robot)/launch/hardware_hal.launch" pass_all_args="true">
-      <arg name="sim" value="true"/>
-    </include>
-  </group>
+  <include file="$(find za_hardware)/launch/$(arg hardware)_hardware.launch" pass_all_args="true"/>
 
   <!-- Load ros_control controllers -->
   <include file="$(find za_robot)/launch/ros_controllers.launch" pass_all_args="true"/>

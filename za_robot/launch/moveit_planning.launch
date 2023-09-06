@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Robot Customization -->
+  <arg name="arm_id"      default="za"    doc="Name of the robot to launch"/>
+  <arg name="hardware"    default="sim"   doc="One of 'sim', 'hal', or 'hal_sim'"/>
+  <arg name="rviz"        default="true"  doc="Should RVIz be launched?"/>
+  <arg name="pipeline"    default="ompl"  doc="Which planning pipeline should be used"/>
+
+  <!-- Launch the move group for motion planning -->
+  <include file="$(find za_moveit_config)/launch/move_group.launch">
+    <arg name="moveit_controller_manager" value="za"/>
+  </include>
+
+  <!-- Robot ROS Topics and Rviz -->
+  <group if="$(arg rviz)">
+    <include file="$(find za_robot)/launch/za_visualization.launch">
+      <arg name="load_robot_description" value="false"/>
+      <arg name="arm_id" value="(arg arm_id)"/>
+      <arg name="rvizconfig" value="$(find za_moveit_config)/launch/moveit.rviz"/>
+    </include>
+  </group>
+</launch>
