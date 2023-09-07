@@ -10,8 +10,9 @@
 	<buildtool_depend>catkin</buildtool_depend>
 
 	<exec_depend>za_description</exec_depend>
-	<exec_depend>za_gazebo</exec_depend>
-	<exec_depend>za_hw</exec_depend>
+	<exec_depend>za_hardware</exec_depend>
+	<exec_depend>za_moveit_config</exec_depend>
+	<exec_depend>za_robot</exec_depend>
 
 	<export>
 		<metapackage/>
