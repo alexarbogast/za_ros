@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Robot Customization -->
+  <arg name="arm_id"    default="za"   doc="Name of the robot to launch"/>
+
+  <!-- GDB functionality -->
+  <arg name="debug" default="false"/>
+  <arg unless="$(arg debug)" name="launch_prefix" value=""/>
+  <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args"/>
+  
+  <!-- Load hardware interface -->
+  <rosparam file="$(find za_hardware)/config/za_hardware.yaml" subst_value="true"/>
+  <node name="sim_hw_interface" pkg="ros_control_boilerplate" type="sim_hw_main" 
+        output="screen" launch-prefix="$(arg launch_prefix)">
+  </node>
+
+</launch>

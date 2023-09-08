@@ -1,0 +1,19 @@
+hal_mgr:
+  hal_files:
+    # Load a HAL file that sets up the realtime configuration
+    - setup.py
+    - hal_io.py
+    - robot_io_pins.py
+    # Leave as last item!
+    - start_realtime.py
+
+hardware_interface:
+  # Configuration for resetting ROS controllers:  enable is false, and
+  # - abs(velocity) less than this tolerance
+  stopped_velocity_tolerance: 0.005
+  # - abs(cmd_pos - fb_pos) less than this tolerance
+  command_feedback_equal_tolerance: 0.005
+
+  # Safety input
+  # - when tripped, scale max_vel by this factor
+  max_vel_safety_scale: 0.1

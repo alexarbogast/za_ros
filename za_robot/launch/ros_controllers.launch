@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="arm_id" default="za" doc="Name of the robot launch"/>
+  <arg name="controller"  default="position_trajectory_controller" doc="Which controller should be started?" />
+
+  <!-- Load joint controller configurations from YAML file to parameter server -->
+  <rosparam file="$(find za_robot)/config/ros_controllers.yaml" subst_value="true"/>
+
+  <!-- spawns ros_control controllers -->
+  <node pkg="controller_manager"
+        type="spawner"
+        name="$(arg arm_id)_controller_spawner"
+        respawn="false" output="screen"
+        args="joint_state_controller $(arg controller)"
+  />
+</launch>
