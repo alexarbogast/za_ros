@@ -1,0 +1,19 @@
+arm_id: $(arg arm_id)
+
+generic_hw_control_loop:
+  loop_hz: 1000
+  cycle_time_error_threshold: 0.01
+
+hardware_interface:
+  joints:
+    - $(arg arm_id)_joint_1
+    - $(arg arm_id)_joint_2
+    - $(arg arm_id)_joint_3
+    - $(arg arm_id)_joint_4
+    - $(arg arm_id)_joint_5
+    - $(arg arm_id)_joint_6
+  sim_control_mode: 0  # 0: position, 1: velocity
+
+joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: 50

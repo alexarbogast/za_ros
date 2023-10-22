@@ -1,0 +1,25 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: za_description
+    relative_path: urdf/za.xacro
+  srdf:
+    relative_path: config/za.srdf
+  package_settings:
+    author_name: Alex Arbogast
+    author_email: arbogastaw@gmail.com
+    generated_timestamp: 1697996550
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity

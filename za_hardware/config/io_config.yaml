@@ -1,0 +1,46 @@
+# hal_io publish/subscribe topics for IO pins
+io:
+  digital_in_topics:
+    - /hal_io/digital_in_1
+    - /hal_io/digital_in_2
+    - /hal_io/digital_in_3
+    - /hal_io/digital_in_4
+    - /hal_io/digital_in_5
+    - /hal_io/digital_in_6
+    - /hal_io/digital_in_7
+    - /hal_io/digital_in_8
+    - /hal_io/digital_in_9
+    - /hal_io/digital_in_10
+    - /hal_io/digital_in_11
+    - /hal_io/digital_in_12
+    - /hal_io/digital_in_13
+    - /hal_io/digital_in_14
+    - /hal_io/digital_in_15
+    - /hal_io/digital_in_16
+  digital_out_topics:
+    - /hal_io/digital_out_1
+    - /hal_io/digital_out_2
+    - /hal_io/digital_out_3
+    - /hal_io/digital_out_4
+    - /hal_io/digital_out_5
+    - /hal_io/digital_out_6
+    - /hal_io/digital_out_7
+    - /hal_io/digital_out_8
+    - /hal_io/digital_out_9
+    - /hal_io/digital_out_10
+    - /hal_io/digital_out_11
+    - /hal_io/digital_out_12
+    - /hal_io/digital_out_13
+    - /hal_io/digital_out_14
+    - /hal_io/digital_out_15
+    - /hal_io/digital_out_16
+  user_io_topics:
+    - /hal_io/user_io_1
+    - /hal_io/user_io_2
+    - /hal_io/user_io_3
+    - /hal_io/user_io_4
+    - /hal_io/user_io_5
+    - /hal_io/user_io_6
+    - /hal_io/user_io_7
+    - /hal_io/user_io_8
+    - /hal_io/user_io_9

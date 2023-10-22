@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>za_hardware</name>
+  <version>0.0.1</version>
+  <description>Tormach ZA robot hardware configuration</description>
+
+  <maintainer email="arbogastaw@gmail.com">Alex Arbogast</maintainer>
+  <author email="arbogastaw@gmail.com">Alex Arbogast</author>
+
+  <license>BSD</license>
+
+  <depend>rospy</depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- <exec_depend>controller_manager</exec_depend> -->
+  <exec_depend>hal_402_device_mgr</exec_depend>
+  <exec_depend>hal_hw_interface</exec_depend>
+  <exec_depend>linuxcnc-ethercat</exec_depend>
+  <exec_depend>etherlabmaster-tools</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>rviz</exec_depend>
+  <exec_depend>machinekit</exec_depend>
+  <exec_depend>python3-pandas</exec_depend>
+</package>
