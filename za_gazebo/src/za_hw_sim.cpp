@@ -346,6 +346,7 @@ void ZaHWSim::writeSim(ros::Time /*time*/, ros::Duration period) {
         } 
         else if (joint->control_method == VELOCITY) {
             effort = velocityControl(*joint, joint->desired_velocity, period);
+            //joint->handle->SetVelocity(0, joint->desired_velocity);
         } 
         else if (joint->control_method == EFFORT) {
             effort = joint->command;

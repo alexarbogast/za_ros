@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: za_description
+    relative_path: urdf/za.xacro
+    xacro_args: prefix:=za_
+  SRDF:
+    relative_path: config/za.srdf
+  CONFIG:
+    author_name: Alex Arbogast
+    author_email: arbogastaw@gmail.com
+    generated_timestamp: 1687734140

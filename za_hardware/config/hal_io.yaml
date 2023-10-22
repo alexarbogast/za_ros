@@ -1,0 +1,178 @@
+hal_io:
+
+  # I/O main loop publish rate in Hz
+  update_rate: 10
+
+  # Pin definitions
+  #
+  # output_pins: are read from a topic (default) or service
+
+  # HAL pins are named hal_io.<pin_name>
+
+  # valid keys for all pins:
+  #   hal_type:  BIT, FLOAT, S32, U32
+
+  publish_pins:
+    # publish_pins values from HAL pin published to ROS topic
+    # valid keys:
+    #   hal_dir:  IN (default), IO
+    #   pub_topic:  (any valid ROS topic name, default /hal_io/<pin_name>)
+    digital_in_1:
+      hal_type: BIT
+    digital_in_2:
+      hal_type: BIT
+    digital_in_3:
+      hal_type: BIT
+    digital_in_4:
+      hal_type: BIT
+    digital_in_5:
+      hal_type: BIT
+    digital_in_6:
+      hal_type: BIT
+    digital_in_7:
+      hal_type: BIT
+    digital_in_8:
+      hal_type: BIT
+    digital_in_9:
+      hal_type: BIT
+    digital_in_10:
+      hal_type: BIT
+    digital_in_11:
+      hal_type: BIT
+    digital_in_12:
+      hal_type: BIT
+    digital_in_13:
+      hal_type: BIT
+    digital_in_14:
+      hal_type: BIT
+    digital_in_15:
+      hal_type: BIT
+    digital_in_16:
+      hal_type: BIT
+
+    safety_input:
+      hal_type: BIT
+      hal_dir: IN
+      #key: /machine_state/safety_input
+    enabling_input:
+      hal_type: BIT
+      hal_dir: IN
+      #key: /machine_state/enabling_input
+    max_vel_safety_scale:
+      hal_type: FLOAT
+      hal_dir: IN
+      #key: /machine_state/max_velocity_limits/safety_input
+    quick_stop:
+      hal_type: BIT
+      hal_dir: IN
+      #key: /machine_state/quick_stop
+    controller_error_code:
+      hal_type: S32
+      hal_dir: IN
+      #key: /machine_state/controller_error_code
+    #probe_in:
+    #  hal_type: BIT
+  subscribe_pins:
+    # subscribe_pins values from ROS topic copied to HAL output pin
+    # valid keys:
+    #   hal_dir:  OUT (default), IO
+    #   sub_topic:  (any valid ROS topic name, default /hal_io/<pin_name>)
+    #   pub_topic:  (any valid ROS topic name, default /hal_io/<pin_name>)
+    digital_out_1:
+      hal_type: BIT
+    digital_out_2:
+      hal_type: BIT
+    digital_out_3:
+      hal_type: BIT
+    digital_out_4:
+      hal_type: BIT
+    digital_out_5:
+      hal_type: BIT
+    digital_out_6:
+      hal_type: BIT
+    digital_out_7:
+      hal_type: BIT
+    digital_out_8:
+      hal_type: BIT
+    digital_out_9:
+      hal_type: BIT
+    digital_out_10:
+      hal_type: BIT
+    digital_out_11:
+      hal_type: BIT
+    digital_out_12:
+      hal_type: BIT
+    digital_out_13:
+      hal_type: BIT
+    digital_out_14:
+      hal_type: BIT
+    digital_out_15:
+      hal_type: BIT
+    digital_out_16:
+      hal_type: BIT
+    state_cmd:
+      hal_type: U32
+      hal_dir: IO
+    #probe_active_low:
+    #  hal_type: BIT
+    #  hal_dir: IO
+    # generic I/O pins for users to use
+    user_io_1:
+      hal_type: FLOAT
+      hal_dir: IO
+    user_io_2:
+      hal_type: FLOAT
+      hal_dir: IO
+    user_io_3:
+      hal_type: FLOAT
+      hal_dir: IO
+    user_io_4:
+      hal_type: FLOAT
+      hal_dir: IO
+    user_io_5:
+      hal_type: FLOAT
+      hal_dir: IO
+    user_io_6:
+      hal_type: FLOAT
+      hal_dir: IO
+    user_io_7:
+      hal_type: FLOAT
+      hal_dir: IO
+    user_io_8:
+      hal_type: FLOAT
+      hal_dir: IO
+    user_io_9:
+      hal_type: FLOAT
+      hal_dir: IO
+
+  service_pins: {}
+    # service_pins values from ROS service copied to HAL output pin
+    #   and published topic
+    # valid keys:
+    #   hal_dir:  OUT (default), IO
+    #   service_name:  (any valid ROS service name, default /hal_io/<pin_name>)
+    #   pub_topic:  (any valid ROS topic name, default /hal_io/<pin_name>)
+
+  #redis_pins:
+  #  # redis-cli -p 62345 KEYS ros:\*
+  #  # redis-cli -p 62345 GET ros:machine_state/max_velocity_limits/safety_input
+  #  safety_input:
+  #    hal_type: BIT
+  #    hal_dir: IN
+  #    key: /machine_state/safety_input
+  #  enabling_input:
+  #    hal_type: BIT
+  #    hal_dir: IN
+  #    key: /machine_state/enabling_input
+  #  max_vel_safety_scale:
+  #    hal_type: FLOAT
+  #    hal_dir: IN
+  #    key: /machine_state/max_velocity_limits/safety_input
+  #  quick_stop:
+  #    hal_type: BIT
+  #    hal_dir: IN
+  #    key: /machine_state/quick_stop
+  #  controller_error_code:
+  #    hal_type: S32
+  #    hal_dir: IN
+  #    key: /machine_state/controller_error_code

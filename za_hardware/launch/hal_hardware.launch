@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- This launch file brings up the za6 controller -->
+  <arg name="arm_id" default="za" doc="Name of the robot launch"/>
+  
+  <!-- HAL Configuration -->
+  <arg name="hal_debug_output" default="false" doc="Should HAL output debug messages to console?"/>
+  <arg name="hal_debug_level"  default="1"     doc="Set HAL debug level, 0-5"/>
+  <arg name="sim"              default="$(eval optenv('HARDWARE_MODE', 'sim') == 'sim')"
+       doc="Should we connect to a simulated or real robot?"/>
+
+
+  <!-- - Servo drive type -->
+  <arg name="robot_drive_type" default="IS620N"/>
+
+  <!-- EtherCAT config file -->
+  <arg name="lcec_config_file" default="ethercat-za6-$(arg robot_drive_type).xml"/>
+  
+  <rosparam file="$(find za_hardware)/config/io_config.yaml"/>
+  <rosparam file="$(find za_hardware)/config/hal_hw_interface.yaml"/>
+  <rosparam file="$(find za_hardware)/config/hal_io.yaml"/>
+  <rosparam file="$(find za_hardware)/config/za_hardware.yaml" subst_value="true"/>
+  <rosparam file="$(find za_hardware)/config/hardware_settings.yaml" subst_value="true"/>
+  <param name="sim_mode" value="$(arg sim)"/>
+
+  <!-- RT CPUs and cgroup name are set in entrypoint and passed
+       through docker-dev.sh -->
+  <param name="hal_mgr/rt_cpus" value="3,7" unless="$(arg sim)"/>
+  <param name="hal_mgr/rt_cgname" value="/rt" unless="$(arg sim)"/>
+  <param name="hal_mgr/hal_file_dir" value="$(find za_hardware)/halfiles"/>
+  <param name="hal_mgr/lcec_config_file" value="$(arg lcec_config_file)"/>
+
+  <!-- EtherCAT drive configuration params -->
+  <rosparam
+      file="$(find za_hardware)/config/ethercat_drive_params_$(arg robot_drive_type).yaml"
+      unless="$(arg sim)"/>
+
+  <!-- parameters being used by hal_402_drive_mgr -->
+  <rosparam
+      file="$(find za_hardware)/config/hal_402_device_mgr_$(arg robot_drive_type).yaml"
+      unless="$(arg sim)"/>
+  <rosparam
+      file="$(find za_hardware)/config/hal_402_device_mgr_sim.yaml"
+      if="$(arg sim)"/>
+  <rosparam
+      file="$(find za_hardware)/config/fault_codes_$(arg robot_drive_type).yaml"
+      unless="$(arg sim)"/>
+
+  <!-- Launch HAL ROS hardware interface and manager node -->
+  <include
+      file="$(find hal_hw_interface)/launch/hal_hw_interface.launch"
+      pass_all_args="true"/>
+</launch>

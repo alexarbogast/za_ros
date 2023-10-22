@@ -1,0 +1,457 @@
+<masters>
+  <master idx="0" appTimePeriod="1000000" refClockSyncCycles="1">
+    <slave idx="0" type="generic" vid="00100000" pid="000c0108" configPdos="true">
+      <dcConf assignActivate="300" sync0Cycle="*1" sync0Shift="500000"/>
+      <!-- Mailboxes -->
+      <syncManager idx="0" dir="out"/>
+      <syncManager idx="1" dir="in"/>
+      <!-- Outputs, RPDO of slave -->
+      <syncManager idx="2" dir="out">
+        <pdo idx="1600">
+          <!-- Convert Joint 1 ROS reference values to drive values (forward direction) -->
+          <!-- gearbox ratio: 151.5, encoder: 23bit, nominal torque: 2.39Nm -->
+          <!-- forward pos and vel scale = 2**23 * 101 * 36 / 24 / (2pi) = 202265896.97232303 -->
+          <!-- forward torque scale = 1000.0 / (151.5 * 2.39) = 2.7617824543960667 -->
+          <pdoEntry idx="6040" subIdx="00" bitLen="16" halType="u32" halPin="control-word"/>
+          <pdoEntry idx="607a" subIdx="00" bitLen="32" scale="202265896.97232303" offset="0" halType="float" halPin="position-reference"/>
+          <pdoEntry idx="60b1" subIdx="00" bitLen="32" scale="202265896.97232303" offset="0" halType="float" halPin="velocity-reference"/>
+          <pdoEntry idx="60b2" subIdx="00" bitLen="16" scale="2.7617824543960667" offset="0" halType="float" halPin="torque-reference"/>
+          <pdoEntry idx="6060" subIdx="00" bitLen="8" halType="u32" halPin="drive-mode-cmd"/>
+        </pdo>
+      </syncManager>
+      <!-- Outputs, TPDO of slave -->
+      <syncManager idx="3" dir="in">
+        <pdo idx="1a00">
+          <pdoEntry idx="6041" subIdx="00" bitLen="16" halType="u32" halPin="status-word"/>
+          <pdoEntry idx="6041" subIdx="00" bitLen="16" halType="complex">
+            <!-- Bit0: Ready to switch on -->
+            <complexEntry bitLen="1" halType="bit" halPin="ready-to-switch-on" />
+            <!-- Bit1: Switched on -->
+            <complexEntry bitLen="1" halType="bit" halPin="switched-on" />
+            <!-- Bit2: Operation enabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="operation-enabled" />
+            <!-- Bit3: Fault -->
+            <complexEntry bitLen="1" halType="bit" halPin="fault" />
+            <!-- Bit4: Voltage enabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="voltage-enabled" />
+            <!-- Bit5: Quick stop -->
+            <complexEntry bitLen="1" halType="bit" halPin="quick-stop-fb" />
+            <!-- Bit6: Switch on disabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="switch-on-disabled" />
+            <!-- Bit7: Warning bit -->
+            <complexEntry bitLen="1" halType="bit" halPin="warning" />
+            <!-- Bit8: Manufacturer specific -->
+            <complexEntry bitLen="1" />
+            <!-- Bit9: Remote -->
+            <complexEntry bitLen="1" halType="bit" halPin="remote" />
+            <!-- Bit10: Goes high when target position is reached (HM, CSP modes) -->
+            <complexEntry bitLen="1" halType="bit" halPin="target-reached" />
+            <!-- Bit11: Internal limit active (HM, CSP modes) -->
+            <complexEntry bitLen="1" halType="bit" halPin="internal-limit-active" />
+            <!-- Bit12~Bit13 Operation mode specific -->
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit12" />
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit13" />
+            <!-- Bit14~Bit15: Manufacturer specific -->
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit14" />
+            <complexEntry bitLen="1" halType="bit" halPin="homing-done-fb" />
+          </pdoEntry>
+          <!-- Convert Joint 1 drive feedback values to ROS (inverse direction) -->
+          <!-- inverse pos and vel scale = 1. / 202265896.97232303 = 4.9439871721768036e-09 -->
+          <!-- inverse torque scale = 1. / 2.7617824543960667 = 0.36208500000000005 -->
+          <pdoEntry idx="6060" subIdx="00" bitLen="8" halType="u32" halPin="drive-mode-fb"/>
+          <pdoEntry idx="6064" subIdx="00" bitLen="32" scale="4.9439871721768036e-09" offset="0" halType="float" halPin="position-actual-value"/>
+          <pdoEntry idx="606c" subIdx="00" bitLen="32" scale="4.9439871721768036e-09" offset="0" halType="float" halPin="velocity-actual-value"/>
+          <pdoEntry idx="6077" subIdx="00" bitLen="16" scale="0.36208500000000005" offset="0" halType="float" halPin="torque-actual-value"/>
+          <pdoEntry idx="60f4" subIdx="00" bitLen="32" scale="4.9439871721768036e-09" halType="float" halPin="following-error-actual-value"/>
+          <pdoEntry idx="203f" subIdx="00" bitLen="32" halType="u32" halPin="aux-error-code"/>
+        </pdo>
+      </syncManager>
+    </slave>
+    <slave idx="1" type="generic" vid="00100000" pid="000c0108" configPdos="true">
+      <dcConf assignActivate="300" sync0Cycle="*1" sync0Shift="500000" />
+      <!-- Mailboxes -->
+      <syncManager idx="0" dir="out"/>
+      <syncManager idx="1" dir="in"/>
+      <!-- Outputs, RPDO of slave -->
+      <syncManager idx="2" dir="out">
+        <pdo idx="1600">
+          <!-- Convert Joint 2 ROS reference values to drive values (forward direction) -->
+          <!-- gearbox ratio: 100, encoder: 23bit, nominal torque: 2.39Nm -->
+          <!-- forward pos and vel scale = 2**23 * 100 * 1 / 1 / (2pi) = 133508842.88602179 -->
+          <!-- forward torque scale = 1000.0 / (100 * 2.39) = 4.1841004184100417 -->
+          <pdoEntry idx="6040" subIdx="00" bitLen="16" halType="u32" halPin="control-word"/>
+          <pdoEntry idx="607a" subIdx="00" bitLen="32" scale="133508842.88602179" offset="0" halType="float" halPin="position-reference"/>
+          <pdoEntry idx="60b1" subIdx="00" bitLen="32" scale="133508842.88602179" offset="0" halType="float" halPin="velocity-reference"/>
+          <pdoEntry idx="60b2" subIdx="00" bitLen="16" scale="4.1841004184100417" offset="0" halType="float" halPin="torque-reference"/>
+          <pdoEntry idx="6060" subIdx="00" bitLen="8" halType="u32" halPin="drive-mode-cmd"/>
+        </pdo>
+      </syncManager>
+      <!-- Outputs, TPDO of slave -->
+      <syncManager idx="3" dir="in">
+        <pdo idx="1a00">
+          <pdoEntry idx="6041" subIdx="00" bitLen="16" halType="u32" halPin="status-word"/>
+          <pdoEntry idx="6041" subIdx="00" bitLen="16" halType="complex">
+            <!-- Bit0: Ready to switch on -->
+            <complexEntry bitLen="1" halType="bit" halPin="ready-to-switch-on" />
+            <!-- Bit1: Switched on -->
+            <complexEntry bitLen="1" halType="bit" halPin="switched-on" />
+            <!-- Bit2: Operation enabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="operation-enabled" />
+            <!-- Bit3: Fault -->
+            <complexEntry bitLen="1" halType="bit" halPin="fault" />
+            <!-- Bit4: Voltage enabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="voltage-enabled" />
+            <!-- Bit5: Quick stop -->
+            <complexEntry bitLen="1" halType="bit" halPin="quick-stop-fb" />
+            <!-- Bit6: Switch on disabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="switch-on-disabled" />
+            <!-- Bit7: Warning bit -->
+            <complexEntry bitLen="1" halType="bit" halPin="warning" />
+            <!-- Bit8: Manufacturer specific -->
+            <complexEntry bitLen="1" />
+            <!-- Bit9: Remote -->
+            <complexEntry bitLen="1" halType="bit" halPin="remote" />
+            <!-- Bit10: Goes high when target position is reached (HM, CSP modes) -->
+            <complexEntry bitLen="1" halType="bit" halPin="target-reached" />
+            <!-- Bit11: Internal limit active (HM, CSP modes) -->
+            <complexEntry bitLen="1" halType="bit" halPin="internal-limit-active" />
+            <!-- Bit12~Bit13 Operation mode specific -->
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit12" />
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit13" />
+            <!-- Bit14~Bit15: Manufacturer specific -->
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit14" />
+            <complexEntry bitLen="1" halType="bit" halPin="homing-done-fb" />
+          </pdoEntry>
+          <!-- Convert Joint 2 drive feedback values to ROS (inverse direction) -->
+          <!-- inverse pos and vel scale = 1. / 133508842.88602179 = 7.4901405658478579e-09 -->
+          <!-- inverse torque scale = 1. / 4.1841004184100417 = 0.23899999999999999 -->
+          <pdoEntry idx="6060" subIdx="00" bitLen="8" halType="u32" halPin="drive-mode-fb"/>
+          <pdoEntry idx="6064" subIdx="00" bitLen="32" scale="7.4901405658478579e-09" offset="0" halType="float" halPin="position-actual-value"/>
+          <pdoEntry idx="606c" subIdx="00" bitLen="32" scale="7.4901405658478579e-09" offset="0" halType="float" halPin="velocity-actual-value"/>
+          <pdoEntry idx="6077" subIdx="00" bitLen="16" scale="0.23899999999999999" offset="0" halType="float" halPin="torque-actual-value"/>
+          <pdoEntry idx="60f4" subIdx="00" bitLen="32" scale="7.4901405658478579e-09" halType="float" halPin="following-error-actual-value"/>
+          <pdoEntry idx="203f" subIdx="00" bitLen="32" halType="u32" halPin="aux-error-code"/>
+        </pdo>
+      </syncManager>
+    </slave>
+    <slave idx="2" type="generic" vid="00100000" pid="000c0108" configPdos="true">
+      <!-- Elbow joint -->
+      <dcConf assignActivate="300" sync0Cycle="*1" sync0Shift="500000" />
+      <!-- Mailboxes -->
+      <syncManager idx="0" dir="out"/>
+      <syncManager idx="1" dir="in"/>
+      <!-- Outputs, RPDO of slave -->
+      <syncManager idx="2" dir="out">
+        <pdo idx="1600">
+          <!-- Convert Joint 3 ROS reference values to drive values (forward direction) -->
+          <!-- gearbox ratio: 80, encoder: 23bit, nominal torque: 1.27Nm -->
+          <!-- forward pos and vel scale = 2**23 * 80 * 1 / 1 / (2pi) = 106807074.30881745 -->
+          <!-- forward torque scale = 1000.0 / (80 * 1.27) = 9.8425196850393704 -->
+          <pdoEntry idx="6040" subIdx="00" bitLen="16" halType="u32" halPin="control-word"/>
+          <pdoEntry idx="607a" subIdx="00" bitLen="32" scale="106807074.30881745" offset="0" halType="float" halPin="position-reference"/>
+          <pdoEntry idx="60b1" subIdx="00" bitLen="32" scale="106807074.30881745" offset="0" halType="float" halPin="velocity-reference"/>
+          <pdoEntry idx="60b2" subIdx="00" bitLen="16" scale="9.8425196850393704" offset="0" halType="float" halPin="torque-reference"/>
+          <pdoEntry idx="6060" subIdx="00" bitLen="8" halType="u32" halPin="drive-mode-cmd"/>
+        </pdo>
+      </syncManager>
+      <!-- Outputs, TPDO of slave -->
+      <syncManager idx="3" dir="in">
+        <pdo idx="1a00">
+          <pdoEntry idx="6041" subIdx="00" bitLen="16" halType="u32" halPin="status-word"/>
+          <pdoEntry idx="6041" subIdx="00" bitLen="16" halType="complex">
+            <!-- Bit0: Ready to switch on -->
+            <complexEntry bitLen="1" halType="bit" halPin="ready-to-switch-on" />
+            <!-- Bit1: Switched on -->
+            <complexEntry bitLen="1" halType="bit" halPin="switched-on" />
+            <!-- Bit2: Operation enabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="operation-enabled" />
+            <!-- Bit3: Fault -->
+            <complexEntry bitLen="1" halType="bit" halPin="fault" />
+            <!-- Bit4: Voltage enabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="voltage-enabled" />
+            <!-- Bit5: Quick stop -->
+            <complexEntry bitLen="1" halType="bit" halPin="quick-stop-fb" />
+            <!-- Bit6: Switch on disabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="switch-on-disabled" />
+            <!-- Bit7: Warning bit -->
+            <complexEntry bitLen="1" halType="bit" halPin="warning" />
+            <!-- Bit8: Manufacturer specific -->
+            <complexEntry bitLen="1" />
+            <!-- Bit9: Remote -->
+            <complexEntry bitLen="1" halType="bit" halPin="remote" />
+            <!-- Bit10: Goes high when target position is reached (HM, CSP modes) -->
+            <complexEntry bitLen="1" halType="bit" halPin="target-reached" />
+            <!-- Bit11: Internal limit active (HM, CSP modes) -->
+            <complexEntry bitLen="1" halType="bit" halPin="internal-limit-active" />
+            <!-- Bit12~Bit13 Operation mode specific -->
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit12" />
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit13" />
+            <!-- Bit14~Bit15: Manufacturer specific -->
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit14" />
+            <complexEntry bitLen="1" halType="bit" halPin="homing-done-fb" />
+          </pdoEntry>
+          <!-- Convert Joint 3 drive feedback values to ROS (inverse direction) -->
+          <!-- inverse pos and vel scale = 1. / 106807074.30881745 = 9.3626757073098216e-09 -->
+          <!-- inverse torque scale = 1. / 9.8425196850393704 = 0.1016 -->
+          <pdoEntry idx="6060" subIdx="00" bitLen="8" halType="u32" halPin="drive-mode-fb"/>
+          <pdoEntry idx="6064" subIdx="00" bitLen="32" scale="9.3626757073098216e-09" offset="0" halType="float" halPin="position-actual-value"/>
+          <pdoEntry idx="606c" subIdx="00" bitLen="32" scale="9.3626757073098216e-09" offset="0" halType="float" halPin="velocity-actual-value"/>
+          <pdoEntry idx="6077" subIdx="00" bitLen="16" scale="0.1016" offset="0" halType="float" halPin="torque-actual-value"/>
+          <pdoEntry idx="60f4" subIdx="00" bitLen="32" scale="9.3626757073098216e-09" halType="float" halPin="following-error-actual-value"/>
+          <pdoEntry idx="203f" subIdx="00" bitLen="32" halType="u32" halPin="aux-error-code"/>
+        </pdo>
+      </syncManager>
+    </slave>
+    <slave idx="3" type="generic" vid="00100000" pid="000c0108" configPdos="true">
+      <dcConf assignActivate="300" sync0Cycle="*1" sync0Shift="500000" />
+      <!-- Mailboxes -->
+      <syncManager idx="0" dir="out"/>
+      <syncManager idx="1" dir="in"/>
+      <!-- Outputs, RPDO of slave -->
+      <syncManager idx="2" dir="out">
+        <pdo idx="1600">
+          <!-- Convert Joint 4 ROS reference values to drive values (forward direction) -->
+          <!-- gearbox ratio: 104.143, encoder: 23bit, nominal torque: 0.32Nm -->
+          <!-- forward pos and vel scale = 2**23 * 81 * 36 / 28 / (2pi) = 139039923.51987126 -->
+          <!-- forward torque scale = 1000.0 / (104.143 * 0.32) = 30.006858710562415 -->
+          <pdoEntry idx="6040" subIdx="00" bitLen="16" halType="u32" halPin="control-word"/>
+          <pdoEntry idx="607a" subIdx="00" bitLen="32" scale="139039923.51987126" offset="0" halType="float" halPin="position-reference"/>
+          <pdoEntry idx="60b1" subIdx="00" bitLen="32" scale="139039923.51987126" offset="0" halType="float" halPin="velocity-reference"/>
+          <pdoEntry idx="60b2" subIdx="00" bitLen="16" scale="30.006858710562415" offset="0" halType="float" halPin="torque-reference"/>
+          <pdoEntry idx="6060" subIdx="00" bitLen="8" halType="u32" halPin="drive-mode-cmd"/>
+        </pdo>
+      </syncManager>
+      <!-- Outputs, TPDO of slave -->
+      <syncManager idx="3" dir="in">
+        <pdo idx="1a00">
+          <pdoEntry idx="6041" subIdx="00" bitLen="16" halType="u32" halPin="status-word"/>
+          <pdoEntry idx="6041" subIdx="00" bitLen="16" halType="complex">
+            <!-- Bit0: Ready to switch on -->
+            <complexEntry bitLen="1" halType="bit" halPin="ready-to-switch-on" />
+            <!-- Bit1: Switched on -->
+            <complexEntry bitLen="1" halType="bit" halPin="switched-on" />
+            <!-- Bit2: Operation enabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="operation-enabled" />
+            <!-- Bit3: Fault -->
+            <complexEntry bitLen="1" halType="bit" halPin="fault" />
+            <!-- Bit4: Voltage enabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="voltage-enabled" />
+            <!-- Bit5: Quick stop -->
+            <complexEntry bitLen="1" halType="bit" halPin="quick-stop-fb" />
+            <!-- Bit6: Switch on disabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="switch-on-disabled" />
+            <!-- Bit7: Warning bit -->
+            <complexEntry bitLen="1" halType="bit" halPin="warning" />
+            <!-- Bit8: Manufacturer specific -->
+            <complexEntry bitLen="1" />
+            <!-- Bit9: Remote -->
+            <complexEntry bitLen="1" halType="bit" halPin="remote" />
+            <!-- Bit10: Goes high when target position is reached (HM, CSP modes) -->
+            <complexEntry bitLen="1" halType="bit" halPin="target-reached" />
+            <!-- Bit11: Internal limit active (HM, CSP modes) -->
+            <complexEntry bitLen="1" halType="bit" halPin="internal-limit-active" />
+            <!-- Bit12~Bit13 Operation mode specific -->
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit12" />
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit13" />
+            <!-- Bit14~Bit15: Manufacturer specific -->
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit14" />
+            <complexEntry bitLen="1" halType="bit" halPin="homing-done-fb" />
+          </pdoEntry>
+          <!-- Convert Joint 4 drive feedback values to ROS (inverse direction) -->
+          <!-- inverse pos and vel scale = 1. / 139039923.51987126 = 7.1921788698127573e-09 -->
+          <!-- inverse torque scale = 1. / 30.006858710562415 = 0.033325714285714285 -->
+          <pdoEntry idx="6060" subIdx="00" bitLen="8" halType="u32" halPin="drive-mode-fb"/>
+          <pdoEntry idx="6064" subIdx="00" bitLen="32" scale="7.1921788698127573e-09" offset="0" halType="float" halPin="position-actual-value"/>
+          <pdoEntry idx="606c" subIdx="00" bitLen="32" scale="7.1921788698127573e-09" offset="0" halType="float" halPin="velocity-actual-value"/>
+          <pdoEntry idx="6077" subIdx="00" bitLen="16" scale="0.033325714285714285" offset="0" halType="float" halPin="torque-actual-value"/>
+          <pdoEntry idx="60f4" subIdx="00" bitLen="32" scale="7.1921788698127573e-09" halType="float" halPin="following-error-actual-value"/>
+          <pdoEntry idx="203f" subIdx="00" bitLen="32" halType="u32" halPin="aux-error-code"/>
+        </pdo>
+      </syncManager>
+    </slave>
+    <slave idx="4" type="generic" vid="00100000" pid="000c0108" configPdos="true">
+      <dcConf assignActivate="300" sync0Cycle="*1" sync0Shift="500000" />
+      <!-- Mailboxes -->
+      <syncManager idx="0" dir="out"/>
+      <syncManager idx="1" dir="in"/>
+      <!-- Outputs, RPDO of slave -->
+      <syncManager idx="2" dir="out">
+        <pdo idx="1600">
+          <!-- Convert Joint 5 ROS reference values to drive values (forward direction) -->
+          <!-- gearbox ratio: 81, encoder: 23bit, nominal torque: 0.32Nm -->
+          <!-- forward pos and vel scale = 2**23 * 81 * 30 / 30 / (2pi) = 108142162.73767766 -->
+          <!-- forward torque scale = 1000.0 / (81 * 0.32) = 38.580246913580247 -->
+          <pdoEntry idx="6040" subIdx="00" bitLen="16" halType="u32" halPin="control-word"/>
+          <pdoEntry idx="607a" subIdx="00" bitLen="32" scale="108142162.73767766" offset="0" halType="float" halPin="position-reference"/>
+          <pdoEntry idx="60b1" subIdx="00" bitLen="32" scale="108142162.73767766" offset="0" halType="float" halPin="velocity-reference"/>
+          <pdoEntry idx="60b2" subIdx="00" bitLen="16" scale="38.580246913580247" offset="0" halType="float" halPin="torque-reference"/>
+          <pdoEntry idx="6060" subIdx="00" bitLen="8" halType="u32" halPin="drive-mode-cmd"/>
+        </pdo>
+      </syncManager>
+      <!-- Outputs, TPDO of slave -->
+      <syncManager idx="3" dir="in">
+        <pdo idx="1a00">
+          <pdoEntry idx="6041" subIdx="00" bitLen="16" halType="u32" halPin="status-word"/>
+          <pdoEntry idx="6041" subIdx="00" bitLen="16" halType="complex">
+            <!-- Bit0: Ready to switch on -->
+            <complexEntry bitLen="1" halType="bit" halPin="ready-to-switch-on" />
+            <!-- Bit1: Switched on -->
+            <complexEntry bitLen="1" halType="bit" halPin="switched-on" />
+            <!-- Bit2: Operation enabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="operation-enabled" />
+            <!-- Bit3: Fault -->
+            <complexEntry bitLen="1" halType="bit" halPin="fault" />
+            <!-- Bit4: Voltage enabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="voltage-enabled" />
+            <!-- Bit5: Quick stop -->
+            <complexEntry bitLen="1" halType="bit" halPin="quick-stop-fb" />
+            <!-- Bit6: Switch on disabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="switch-on-disabled" />
+            <!-- Bit7: Warning bit -->
+            <complexEntry bitLen="1" halType="bit" halPin="warning" />
+            <!-- Bit8: Manufacturer specific -->
+            <complexEntry bitLen="1" />
+            <!-- Bit9: Remote -->
+            <complexEntry bitLen="1" halType="bit" halPin="remote" />
+            <!-- Bit10: Goes high when target position is reached (HM, CSP modes) -->
+            <complexEntry bitLen="1" halType="bit" halPin="target-reached" />
+            <!-- Bit11: Internal limit active (HM, CSP modes) -->
+            <complexEntry bitLen="1" halType="bit" halPin="internal-limit-active" />
+            <!-- Bit12~Bit13 Operation mode specific -->
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit12" />
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit13" />
+            <!-- Bit14~Bit15: Manufacturer specific -->
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit14" />
+            <complexEntry bitLen="1" halType="bit" halPin="homing-done-fb" />
+          </pdoEntry>
+          <!-- Convert Joint 5 drive feedback values to ROS (inverse direction) -->
+          <!-- inverse pos and vel scale = 1. / 108142162.73767766 = 9.2470871183306876e-09 -->
+          <!-- inverse torque scale = 1. / 38.580246913580247 = 0.025920000000000002 -->
+          <pdoEntry idx="6060" subIdx="00" bitLen="8" halType="u32" halPin="drive-mode-fb"/>
+          <pdoEntry idx="6064" subIdx="00" bitLen="32" scale="9.2470871183306876e-09" offset="0" halType="float" halPin="position-actual-value"/>
+          <pdoEntry idx="606c" subIdx="00" bitLen="32" scale="9.2470871183306876e-09" offset="0" halType="float" halPin="velocity-actual-value"/>
+          <pdoEntry idx="6077" subIdx="00" bitLen="16" scale="0.025920000000000002" offset="0" halType="float" halPin="torque-actual-value"/>
+          <pdoEntry idx="60f4" subIdx="00" bitLen="32" scale="9.2470871183306876e-09" halType="float" halPin="following-error-actual-value"/>
+          <pdoEntry idx="203f" subIdx="00" bitLen="32" halType="u32" halPin="aux-error-code"/>
+        </pdo>
+      </syncManager>
+    </slave>
+    <slave idx="5" type="generic" vid="00100000" pid="000c0108" configPdos="true">
+      <dcConf assignActivate="300" sync0Cycle="*1" sync0Shift="500000" />
+      <!-- Mailboxes -->
+      <syncManager idx="0" dir="out"/>
+      <syncManager idx="1" dir="in"/>
+      <!-- Outputs, RPDO of slave -->
+      <syncManager idx="2" dir="out">
+        <pdo idx="1600">
+          <!-- Convert Joint 6 ROS reference values to drive values (forward direction) -->
+          <!-- gearbox ratio: -50, encoder: 23bit, nominal torque: 0.32Nm -->
+          <!-- forward pos and vel scale = 2**23 * -50 * 1 / 1 / (2pi) = -66754421.443010896 -->
+          <!-- forward torque scale = 1000.0 / (-50 * 0.32) = -62.5 -->
+          <pdoEntry idx="6040" subIdx="00" bitLen="16" halType="u32" halPin="control-word"/>
+          <pdoEntry idx="607a" subIdx="00" bitLen="32" scale="-66754421.443010896" offset="0" halType="float" halPin="position-reference"/>
+          <pdoEntry idx="60b1" subIdx="00" bitLen="32" scale="-66754421.443010896" offset="0" halType="float" halPin="velocity-reference"/>
+          <pdoEntry idx="60b2" subIdx="00" bitLen="16" scale="-62.5" offset="0" halType="float" halPin="torque-reference"/>
+          <pdoEntry idx="6060" subIdx="00" bitLen="8" halType="u32" halPin="drive-mode-cmd"/>
+        </pdo>
+      </syncManager>
+      <!-- Outputs, TPDO of slave -->
+      <syncManager idx="3" dir="in">
+        <pdo idx="1a00">
+          <pdoEntry idx="6041" subIdx="00" bitLen="16" halType="u32" halPin="status-word"/>
+          <pdoEntry idx="6041" subIdx="00" bitLen="16" halType="complex">
+            <!-- Bit0: Ready to switch on -->
+            <complexEntry bitLen="1" halType="bit" halPin="ready-to-switch-on" />
+            <!-- Bit1: Switched on -->
+            <complexEntry bitLen="1" halType="bit" halPin="switched-on" />
+            <!-- Bit2: Operation enabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="operation-enabled" />
+            <!-- Bit3: Fault -->
+            <complexEntry bitLen="1" halType="bit" halPin="fault" />
+            <!-- Bit4: Voltage enabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="voltage-enabled" />
+            <!-- Bit5: Quick stop -->
+            <complexEntry bitLen="1" halType="bit" halPin="quick-stop-fb" />
+            <!-- Bit6: Switch on disabled -->
+            <complexEntry bitLen="1" halType="bit" halPin="switch-on-disabled" />
+            <!-- Bit7: Warning bit -->
+            <complexEntry bitLen="1" halType="bit" halPin="warning" />
+            <!-- Bit8: Manufacturer specific -->
+            <complexEntry bitLen="1" />
+            <!-- Bit9: Remote -->
+            <complexEntry bitLen="1" halType="bit" halPin="remote" />
+            <!-- Bit10: Goes high when target position is reached (HM, CSP modes) -->
+            <complexEntry bitLen="1" halType="bit" halPin="target-reached" />
+            <!-- Bit11: Internal limit active (HM, CSP modes) -->
+            <complexEntry bitLen="1" halType="bit" halPin="internal-limit-active" />
+            <!-- Bit12~Bit13 Operation mode specific -->
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit12" />
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit13" />
+            <!-- Bit14~Bit15: Manufacturer specific -->
+            <complexEntry bitLen="1" halType="bit" halPin="status-bit14" />
+            <complexEntry bitLen="1" halType="bit" halPin="homing-done-fb" />
+          </pdoEntry>
+          <!-- Convert Joint 6 drive feedback values to ROS (inverse direction) -->
+          <!-- inverse pos and vel scale = 1. / -66754421.443010896 = -1.4980281131695716e-08 -->
+          <!-- inverse torque scale = 1. / -62.5 = -0.016 -->
+          <pdoEntry idx="6060" subIdx="00" bitLen="8" halType="u32" halPin="drive-mode-fb"/>
+          <pdoEntry idx="6064" subIdx="00" bitLen="32" scale="-1.4980281131695716e-08" offset="0" halType="float" halPin="position-actual-value"/>
+          <pdoEntry idx="606c" subIdx="00" bitLen="32" scale="-1.4980281131695716e-08" offset="0" halType="float" halPin="velocity-actual-value"/>
+          <pdoEntry idx="6077" subIdx="00" bitLen="16" scale="-0.016" offset="0" halType="float" halPin="torque-actual-value"/>
+          <pdoEntry idx="60f4" subIdx="00" bitLen="32" scale="-1.4980281131695716e-08" halType="float" halPin="following-error-actual-value"/>
+          <pdoEntry idx="203f" subIdx="00" bitLen="32" halType="u32" halPin="aux-error-code"/>
+        </pdo>
+      </syncManager>
+    </slave>
+    <slave idx="6" type="generic" vid="00000a09" pid="0000000201">
+      <!-- Mailboxes -->
+      <syncManager idx="0" dir="out">
+        <pdo idx="1600">
+          <pdoEntry idx="7001" subIdx="01" bitLen="8" halType="complex">
+            <complexEntry bitLen="8" halType="bit" halPin="dout"/>
+          </pdoEntry>
+        </pdo>
+      </syncManager>
+      <syncManager idx="1" dir="out">
+        <pdo idx="1601">
+          <pdoEntry idx="7001" subIdx="02" bitLen="8" halType="complex">
+            <complexEntry bitLen="1" halType="bit" halPin="dout-8"/>
+            <complexEntry bitLen="1" halType="bit" halPin="dout-9"/>
+            <complexEntry bitLen="1" halType="bit" halPin="dout-10"/>
+            <complexEntry bitLen="1" halType="bit" halPin="dout-11"/>
+            <complexEntry bitLen="1" halType="bit" halPin="dout-12"/>
+            <complexEntry bitLen="1" halType="bit" halPin="dout-13"/>
+            <complexEntry bitLen="1" halType="bit" halPin="dout-14"/>
+            <complexEntry bitLen="1" halType="bit" halPin="dout-15"/>
+          </pdoEntry>
+        </pdo>
+      </syncManager>
+      <syncManager idx="2" dir="in">
+        <pdo idx="1a00">
+          <pdoEntry idx="6001" subIdx="01" bitLen="8" halType="complex">
+            <complexEntry bitLen="1" halType="bit" halPin="din-0"/>
+            <complexEntry bitLen="1" halType="bit" halPin="din-1"/>
+            <complexEntry bitLen="1" halType="bit" halPin="din-2"/>
+            <complexEntry bitLen="1" halType="bit" halPin="din-3"/>
+            <complexEntry bitLen="1" halType="bit" halPin="din-4"/>
+            <complexEntry bitLen="1" halType="bit" halPin="din-5"/>
+            <complexEntry bitLen="1" halType="bit" halPin="din-6"/>
+            <complexEntry bitLen="1" halType="bit" halPin="din-7"/>
+          </pdoEntry>
+        </pdo>
+        <pdo idx="1a01">
+          <pdoEntry idx="6001" subIdx="02" bitLen="8" halType="complex">
+            <complexEntry bitLen="1" halType="bit" halPin="din-8"/>
+            <complexEntry bitLen="1" halType="bit" halPin="din-9"/>
+            <complexEntry bitLen="1" halType="bit" halPin="din-10"/>
+            <complexEntry bitLen="1" halType="bit" halPin="din-11"/>
+            <complexEntry bitLen="1" halType="bit" halPin="din-12"/>
+            <complexEntry bitLen="1" halType="bit" halPin="din-13"/>
+            <complexEntry bitLen="1" halType="bit" halPin="din-14"/>
+            <complexEntry bitLen="1" halType="bit" halPin="din-15"/>
+          </pdoEntry>
+        </pdo>
+      </syncManager>
+    </slave>
+  </master>
+</masters>
