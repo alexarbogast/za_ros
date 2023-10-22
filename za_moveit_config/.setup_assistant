@@ -1,11 +1,25 @@
 moveit_setup_assistant_config:
-  URDF:
+  urdf:
     package: za_description
     relative_path: urdf/za.xacro
-    xacro_args: prefix:=za_
-  SRDF:
+  srdf:
     relative_path: config/za.srdf
-  CONFIG:
+  package_settings:
     author_name: Alex Arbogast
     author_email: arbogastaw@gmail.com
-    generated_timestamp: 1687734140
+    generated_timestamp: 1697996550
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity

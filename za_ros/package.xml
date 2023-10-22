@@ -15,6 +15,6 @@
 	<exec_depend>za_robot</exec_depend>
 
 	<export>
-		<metapackage/>
+		<build_type>ament_cmake</build_type>
 	</export>
 </package>
