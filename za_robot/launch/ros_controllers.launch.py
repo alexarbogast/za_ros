@@ -16,21 +16,20 @@ def generate_launch_description():
     declared_arguments = []
     declared_arguments.append(
         DeclareLaunchArgument(
-            "arm_id",
-            default_value="za",
-            description="Name (prefix) of the robot to launch",
-        )
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
             "controller",
             default_value="joint_trajectory_controller",
             description="Which controller should be started?",
         )
     )
-
-    arm_id = LaunchConfiguration("arm_id")
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "use_mock_hardware",
+            default_value="true",
+            description="Should mock (simulated) hardware be used?",
+        )
+    )
     controller = LaunchConfiguration("controller")
+    use_mock_hardware = LaunchConfiguration("use_mock_hardware")
 
     robot_description = Command(
         [
@@ -39,6 +38,8 @@ def generate_launch_description():
             PathJoinSubstitution(
                 [FindPackageShare("za_description"), "urdf", "za.xacro"]
             ),
+            " use_mock_hardware:=",
+            use_mock_hardware,
         ]
     )
 

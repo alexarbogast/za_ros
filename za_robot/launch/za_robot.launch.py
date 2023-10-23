@@ -25,13 +25,20 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument(
+            "use_mock_hardware",
+            default_value="true",
+            description="Should mock (simulated) hardware be used?",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
             "rviz",
             default_value="false",
             description="The configuration file to use for RViz",
         )
     )
-    arm_id = LaunchConfiguration("arm_id")
     controller = LaunchConfiguration("controller")
+    use_mock_hardware = LaunchConfiguration("use_mock_hardware")
     rviz = LaunchConfiguration("rviz")
 
     # fmt: off
@@ -42,10 +49,11 @@ def generate_launch_description():
                         "launch",
                         "ros_controllers.launch.py",
                 ]),
-        ]),
-        launch_arguments={"arm_id": arm_id, 
-                          "controller": controller}.items(),
-
+        ]), 
+        launch_arguments={
+            "use_mock_hardware": use_mock_hardware,
+            "controller": controller,
+        }.items()
     )
 
     visualization = IncludeLaunchDescription(
@@ -56,7 +64,6 @@ def generate_launch_description():
                         "za_visualization.launch.py",
                 ]),
         ]),
-        launch_arguments={"arm_id": arm_id}.items(),
         condition=IfCondition(rviz),
     )
     # fmt: on
