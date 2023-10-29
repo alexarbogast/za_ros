@@ -8,12 +8,16 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    robot_controllers = PathJoinSubstitution(
+        [FindPackageShare("za_robot"), "config", "ros_controllers.yaml"]
+    )
+
     declared_arguments = []
     declared_arguments.append(
         DeclareLaunchArgument(
-            "arm_id",
-            default_value="za",
-            description="Name (prefix) of the robot to launch",
+            "prefix",
+            default_value="",
+            description="The prefix appended to URDF",
         )
     )
     declared_arguments.append(
@@ -21,6 +25,13 @@ def generate_launch_description():
             "controller",
             default_value="joint_trajectory_controller",
             description="Which controller should be started?",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "controller_config",
+            default_value=robot_controllers,
+            description="Path to the configuration file for ros2_control"
         )
     )
     declared_arguments.append(
@@ -34,10 +45,12 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "rviz",
             default_value="false",
-            description="The configuration file to use for RViz",
+            description="The should RViz be launched",
         )
     )
+    prefix = LaunchConfiguration("prefix")
     controller = LaunchConfiguration("controller")
+    controller_config = LaunchConfiguration("controller_config")
     use_mock_hardware = LaunchConfiguration("use_mock_hardware")
     rviz = LaunchConfiguration("rviz")
 
@@ -46,13 +59,14 @@ def generate_launch_description():
         PythonLaunchDescriptionSource([
                 PathJoinSubstitution([
                         FindPackageShare("za_robot"),
-                        "launch",
-                        "ros_controllers.launch.py",
+                        "launch/ros_controllers.launch.py",
                 ]),
         ]), 
         launch_arguments={
-            "use_mock_hardware": use_mock_hardware,
+            "prefix": prefix,
             "controller": controller,
+            "controller_config": controller_config,
+            "use_mock_hardware": use_mock_hardware,
         }.items()
     )
 
@@ -64,6 +78,7 @@ def generate_launch_description():
                         "za_visualization.launch.py",
                 ]),
         ]),
+        launch_arguments={"prefix": prefix}.items(),
         condition=IfCondition(rviz),
     )
     # fmt: on

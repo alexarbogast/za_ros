@@ -13,7 +13,18 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
+    robot_controllers = PathJoinSubstitution(
+        [FindPackageShare("za_robot"), "config", "ros_controllers.yaml"]
+    )
+
     declared_arguments = []
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "prefix",
+            default_value="",
+            description="The prefix appended to URDF",
+        )
+    )
     declared_arguments.append(
         DeclareLaunchArgument(
             "controller",
@@ -28,8 +39,17 @@ def generate_launch_description():
             description="Should mock (simulated) hardware be used?",
         )
     )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "controller_config",
+            default_value=robot_controllers,
+            description="Path to the configuration file for ros2_control"
+        )
+    )
+    prefix = LaunchConfiguration("prefix")
     controller = LaunchConfiguration("controller")
     use_mock_hardware = LaunchConfiguration("use_mock_hardware")
+    controller_config = LaunchConfiguration("controller_config")
 
     robot_description = Command(
         [
@@ -38,13 +58,9 @@ def generate_launch_description():
             PathJoinSubstitution(
                 [FindPackageShare("za_description"), "urdf", "za.xacro"]
             ),
-            " use_mock_hardware:=",
-            use_mock_hardware,
+            " use_mock_hardware:=", use_mock_hardware,
+            " prefix:=", prefix,
         ]
-    )
-
-    robot_controllers = PathJoinSubstitution(
-        [FindPackageShare("za_robot"), "config", "ros_controllers.yaml"]
     )
 
     control_node = Node(
@@ -52,7 +68,7 @@ def generate_launch_description():
         executable="ros2_control_node",
         parameters=[
             {"robot_description": ParameterValue(robot_description, value_type=str)},
-            robot_controllers,
+            controller_config,
         ],
         output="both",
     )
@@ -61,16 +77,15 @@ def generate_launch_description():
         package="controller_manager",
         executable="spawner",
         arguments=[
-            "joint_state_broadcaster",
-            "--controller-manager",
-            "/controller_manager",
+            "joint_state_broadcaster", 
+            "--controller-manager", "controller_manager",
         ],
     )
 
     robot_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=[controller, "--controller-manager", "/controller_manager"],
+        arguments=[controller, "--controller-manager", "controller_manager"],
     )
 
     nodes = [

@@ -20,11 +20,19 @@ def generate_launch_description():
     declared_arguments = []
     declared_arguments.append(
         DeclareLaunchArgument(
+            "prefix",
+            default_value="",
+            description="The prefix appended to URDF",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
             "rviz_config_file",
             default_value=default_rviz_config,
             description="The configuration file to use for RViz",
         )
     )
+    prefix = LaunchConfiguration("prefix")
     rviz_config_file = LaunchConfiguration("rviz_config_file")
 
     robot_description = Command(
@@ -34,6 +42,7 @@ def generate_launch_description():
             PathJoinSubstitution(
                 [FindPackageShare("za_description"), "urdf", "za.xacro"]
             ),
+            " prefix:=", prefix
         ]
     )
 
