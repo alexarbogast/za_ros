@@ -5,12 +5,9 @@ from launch.conditions import IfCondition
 from launch.substitutions import (
     LaunchConfiguration,
     PathJoinSubstitution,
-    FindExecutable,
-    Command,
 )
 
 from launch_ros.substitutions import FindPackageShare
-from moveit_configs_utils.launches import generate_moveit_rviz_launch
 
 
 def generate_launch_description():
@@ -43,6 +40,9 @@ def generate_launch_description():
                 "rsp.launch.py"
             ]),
         ]),
+        launch_arguments={
+            "publish_frequency": 50
+        }.items()
     )
 
     visualization = IncludeLaunchDescription(
