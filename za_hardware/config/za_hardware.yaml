@@ -14,6 +14,3 @@ hardware_interface:
     - $(arg arm_id)_joint_6
   sim_control_mode: 0  # 0: position, 1: velocity
 
-joint_state_controller:
-  type: joint_state_controller/JointStateController
-  publish_rate: 50
