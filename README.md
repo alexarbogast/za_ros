@@ -1,4 +1,7 @@
 # za_ros
+
+[![license - apache 2.0](https://img.shields.io/:license-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
+
 **ROS integration for the Tormach ZA6 robot**
 
 *DISCLAIMER: This is an UNOFFICIAL robot integration package. The author is not affliated with Tormach Inc..*
