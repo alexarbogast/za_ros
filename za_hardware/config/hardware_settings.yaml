@@ -6,9 +6,9 @@ hardware_settings:
     - slavenum: 0
     - gear_ratio: 151.5
     - sim_startup_position: 0.0
-    - max_pos: 2.96
-    - min_pos: -2.96
-    - max_vel: 2.09
+    - max_pos: deg(170)
+    - min_pos: deg(-170)
+    - max_vel: deg(150)
     - max_acc: 8
     - max_torque: 717.0
     - torque_boost: 2
@@ -30,9 +30,9 @@ hardware_settings:
     - slavenum: 1
     - gear_ratio: 100
     - sim_startup_position: 0.0
-    - max_pos: 2.35
-    - min_pos: -1.74
-    - max_vel: 3.14
+    - max_pos: deg(130)
+    - min_pos: deg(-100)
+    - max_vel: deg(112.5)
     - max_acc: 12
     - max_torque: 478.0
     - torque_boost: 2
@@ -54,9 +54,9 @@ hardware_settings:
     - slavenum: 2
     - gear_ratio: 80
     - sim_startup_position: 0.0
-    - max_pos: 1.15
-    - min_pos: -3.71
-    - max_vel: 3.92
+    - max_pos: deg(65)
+    - min_pos: deg(-120)
+    - max_vel: deg(150)
     - max_acc: 15
     - max_torque: 203.2
     - torque_boost: 2
@@ -78,9 +78,9 @@ hardware_settings:
     - slavenum: 3
     - gear_ratio: 104.142857143
     - sim_startup_position: 0.0
-    - max_pos: 2.61
-    - min_pos: -2.61
-    - max_vel: 3.0
+    - max_pos: deg(180)
+    - min_pos: deg(-180)
+    - max_vel: deg(204.5)
     - max_acc: 12
     - max_torque: 66.56
     - torque_boost: 2
@@ -102,9 +102,9 @@ hardware_settings:
     - slavenum: 4
     - gear_ratio: 81.0
     - sim_startup_position: 0.0
-    - max_pos: 2.5
-    - min_pos: -2.5
-    - max_vel: 3.87
+    - max_pos: deg(140)
+    - min_pos: deg(-140)
+    - max_vel: deg(225)
     - max_acc: 15
     - max_torque: 51.84
     - torque_boost: 2
@@ -126,9 +126,9 @@ hardware_settings:
     - slavenum: 5
     - gear_ratio: -50
     - sim_startup_position: 0.0
-    - max_pos: 4.0
-    - min_pos: -4.0
-    - max_vel: 6.28
+    - max_pos: deg(360)
+    - min_pos: deg(-360)
+    - max_vel: deg(360)
     - max_acc: 24
     - max_torque: 32
     - torque_boost: 2
