@@ -3,7 +3,7 @@
   <!-- Robot Customization -->
   <arg name="arm_id"      default="za"    doc="Name of the robot to launch"/>
   <arg name="hardware"    default="sim"   doc="One of 'sim', 'hal'"/>
-  <arg name="sim"         default="true"  doc="Should the hal interface be launched in sim mode? 
+  <arg name="sim"         default="true"  doc="Should the hal interface be launched in sim mode?
                                                (only applies if hardware == hal)"/>
   <arg name="rviz"        default="false" doc="Should RVIz be launched?"/>
   <arg name="controller"  default="position_trajectory_controller" doc="Which controller should be started?" />

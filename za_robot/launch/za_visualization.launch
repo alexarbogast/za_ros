@@ -8,7 +8,7 @@
   <arg name="rvizconfig" default="$(find za_robot)/rviz/za_robot.rviz" />
   <arg name="load_robot_description" default="true"/>
 
-  <param name="robot_description" if="$(arg load_robot_description)" 
+  <param name="robot_description" if="$(arg load_robot_description)"
          command="xacro $(find za_description)/urdf/za.xacro prefix:=$(arg arm_id)_"/>
 
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
