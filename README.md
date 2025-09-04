@@ -24,13 +24,13 @@ Clone the repository to your local workspace. If you do not already have the
 [za_description](https://github.com/alexarbogast/za_description/tree/e57f65c3f8eb0be88e7739a8b5162b4b3b875b15) package, you will need to clone recursively. 
 
 ```shell
-mkdir catkin_ws/src && cd catkin_ws/src
-git clone --recurse-submodules https://github.com/alexarbogast/za_ros.git
+mkdir colcon_ws/src && cd colcon_ws/src
+git clone --recurse-submodules -b ros2 git@github.com:alexarbogast/za_ros.git
 ```
 
 Build your workspace
 ```shell
-catkin build
+colcon build
 ```
 
 <a id='2'></a>
