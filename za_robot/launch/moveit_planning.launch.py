@@ -24,11 +24,11 @@ def generate_launch_description():
     # fmt: off
     move_group = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-                PathJoinSubstitution([
-                        FindPackageShare("za_moveit_config"),
-                        "launch",
-                        "move_group.launch.py",
-                ]),
+            PathJoinSubstitution([
+                FindPackageShare("za_moveit_config"),
+                "launch",
+                "move_group.launch.py",
+            ]),
         ]),
     )
 
@@ -41,17 +41,17 @@ def generate_launch_description():
             ]),
         ]),
         launch_arguments={
-            "publish_frequency": 50
+            "publish_frequency": "50.0"
         }.items()
     )
 
     visualization = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-                PathJoinSubstitution([
-                        FindPackageShare("za_moveit_config"),
-                        "launch",
-                        "moveit_rviz.launch.py",
-                ]),
+            PathJoinSubstitution([
+                FindPackageShare("za_moveit_config"),
+                "launch",
+                "moveit_rviz.launch.py",
+            ]),
         ]),
         condition=IfCondition(rviz),
     )
@@ -60,7 +60,7 @@ def generate_launch_description():
     nodes_to_start = [
         move_group,
         robot_state_publisher,
-        visualization
+        visualization,
     ]
 
     return LaunchDescription(declared_arguments + nodes_to_start)
