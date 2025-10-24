@@ -9,7 +9,6 @@ from launch.substitutions import (
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
@@ -42,7 +41,8 @@ def generate_launch_description():
             PathJoinSubstitution(
                 [FindPackageShare("za_description"), "urdf", "za.xacro"]
             ),
-            " prefix:=", prefix
+            " prefix:=",
+            prefix,
         ]
     )
 
@@ -51,9 +51,7 @@ def generate_launch_description():
         executable="robot_state_publisher",
         name="robot_state_publisher",
         output="screen",
-        parameters=[
-            {"robot_description": ParameterValue(robot_description, value_type=str)}
-        ],
+        parameters=[{"robot_description": robot_description}],
     )
 
     rviz_node = Node(

@@ -31,7 +31,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "controller_config",
             default_value=robot_controllers,
-            description="Path to the configuration file for ros2_control"
+            description="Path to the configuration file for ros2_control",
         )
     )
     declared_arguments.append(
@@ -61,7 +61,7 @@ def generate_launch_description():
                         FindPackageShare("za_robot"),
                         "launch/ros_controllers.launch.py",
                 ]),
-        ]), 
+        ]),
         launch_arguments={
             "prefix": prefix,
             "controller": controller,
