@@ -20,16 +20,22 @@
 
 ## Installation
 
-Clone the repository to your local workspace. If you do not already have the 
-[za_description](https://github.com/alexarbogast/za_description/tree/e57f65c3f8eb0be88e7739a8b5162b4b3b875b15) package, you will need to clone recursively. 
+Create a ROS 2 workspace and clone this package into a `src` directory.
 
-```shell
-mkdir colcon_ws/src && cd colcon_ws/src
-git clone --recurse-submodules -b ros2 git@github.com:alexarbogast/za_ros.git
+Import package dependencies:
+
+```bash
+sudo apt update
+rosdep update
+cd src
+vcs import < za_ros/za.repos
+rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y
 ```
 
-Build your workspace
-```shell
+Build the packages:
+
+```bask
+cd <COLCON_WORKSPACE>
 colcon build
 ```
 
